@@ -8,9 +8,9 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 async function GET(req: NextApiRequest, res: NextApiResponse) {
   var id = verifyResourceJWT(req.headers.authorization);
 
-  var user = await User.findOne({where: {id}, attributes: ['username']});
-  if (!user)throw new ApiError("Unknown user", HttpStatusCode.NotFound);
-  res.status(200).json({ name: user.username })
+  var user = await User.findOne({where: {id}, attributes: ['id', 'username', 'email', 'avatar', 'color', 'meta']});
+  if (!user) throw new ApiError("Unknown user", HttpStatusCode.NotFound);
+  res.status(200).json(user.toJSON());
 }
 
 export default apiHandler({GET});

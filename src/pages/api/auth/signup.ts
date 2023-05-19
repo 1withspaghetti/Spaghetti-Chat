@@ -1,4 +1,4 @@
-import { SignUpValidator } from "@/types/authValidation";
+import { SignUpValidator } from "@/utils/validation/authValidation";
 import { ApiError, apiHandler } from "@/utils/api";
 import { User } from "@/utils/db/userDatabase";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -37,6 +37,7 @@ async function POST(req: NextApiRequest, res: NextApiResponse<AuthTokenPair>) {
         id,
         email: body.email,
         username: body.user,
+        meta: 0,
         salt,
         hash,
         loginAttemptNext: 0

@@ -19,6 +19,9 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
     declare id: number;
     declare email: string;
     declare username: string;
+    declare avatar?: number;
+    declare color?: number;
+    declare meta: number;
     declare salt: Buffer;
     declare hash: Buffer;
     declare loginAttemptNext: number;
@@ -35,6 +38,19 @@ User.init({
     username: {
         type: DataTypes.TEXT,
         allowNull: false
+    },
+    avatar: {
+        type: DataTypes.NUMBER.UNSIGNED,
+        allowNull: true
+    },
+    color: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: true
+    },
+    meta: {
+        type: DataTypes.INTEGER.UNSIGNED,
+        allowNull: false,
+        defaultValue: 0
     },
     salt: {
         type: DataTypes.BLOB,

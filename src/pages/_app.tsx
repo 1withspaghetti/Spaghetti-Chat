@@ -1,4 +1,3 @@
-import Navbar from '@/components/Navbar'
 import { AuthContext } from '@/context/AuthContext'
 import '@/styles/globals.css'
 import axios, { AxiosError } from 'axios'
@@ -85,13 +84,12 @@ export default function App({ Component, pageProps }: AppProps) {
     return (
         <AuthContext.Provider value={{loggedIn, resourceToken, awaitAuth, updateAuth: setTokens, logout}}>
             <Head>
-                <title>{ pageProps.title ? `${pageProps.title} | Website Name` : `Website Name`}</title>
+                <title>{ pageProps.title ? `${pageProps.title} | Spaghetti Chat` : `Spaghetti Chat`}</title>
                 <meta name="description" content="TODO" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={poppins.className}>
-                { pageProps.removeNavbar ? <></> : <Navbar></Navbar>}
                 <Component {...pageProps} />
             </div>
         </AuthContext.Provider>

@@ -1,4 +1,4 @@
-import { LoginValidator } from "@/types/authValidation";
+import { LoginValidator } from "@/utils/validation/authValidation";
 import { ApiError, apiHandler } from "@/utils/api";
 import { User } from "@/utils/db/userDatabase";
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -15,7 +15,7 @@ async function POST(req: NextApiRequest, res: NextApiResponse<AuthTokenPair>) {
         where: {
             [Op.or]: [{username: body.user}, {email: body.user}]
         }
-    })
+    });
 
     if (!user) throw new ApiError("Invalid Username or Email", HttpStatusCode.BadRequest);
 

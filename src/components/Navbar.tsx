@@ -1,37 +1,55 @@
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import ThemeSwitch from "./ThemeSwitch";
 import Link from "next/link";
+import Image from 'next/image';
 import { AuthContext } from "@/context/AuthContext";
+import axios from "axios";
 
 export default function Navbar() {
 
     var [open, setOpen] = useState<boolean>(false);
 
     var authContext = useContext(AuthContext);
+
+    const [data, setData] = useState<any>();
+    useEffect(()=>{
+        if (authContext.awaitAuth || !authContext.loggedIn || data) return;
+
+        axios.get('/api/user', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
+            setData(res.data);
+        })
+    }, [authContext.awaitAuth]);
     
     return (
-        <div className='sticky top-0 left-0 right-0 bg-slate-200 dark:bg-slate-800 shadow-lg flex justify-between'>
-            <div className={`flex flex-col sm:flex-row overflow-hidden transition-all sm:h-11`} style={{maxHeight: `${open ? 44 + 44 * 2/*<- The number to additional nav buttons */ : 44}px`}}>
-                <div className="flex">
-                    <Link href="/" className="text-xl whitespace-nowrap font-bold px-5 pt-2 pb-1 cursor-pointer transition-[border-color] border-slate-200 dark:border-slate-800 border-b-4 bg-slate-200 hover:border-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:hover:border-blue-700 dark:focus:border-blue-700">Website Name</Link>
-                </div>
-                <div className="flex flex-col sm:flex-row w-min">
-                    <Link href="" className="nav-item">Example</Link>
-                    <Link href="" className="nav-item">Example</Link>
-                </div>
-            </div>
-            <div className="flex items-center h-11">
+        <div className="sticky top-0 left-0 right-0 text-center flex justify-center">
+        <div className='w-full sm:w-max px-6 py-2 bg-slate-200 dark:bg-slate-800 sm:rounded-b-lg shadow-lg flex flex-col sm:flex-row justify-center items-center'>
+            <Link href="/" className="whitespace-nowrap px-4 py-2 cursor-pointer hover:opacity-90 transition">
+                <div className="text-2xl font-bold">Spaghetti Chat</div>
+                <div className="text-sm italic opacity-75">Online Chat Service</div>
+            </Link>
+            <div>
                 { authContext.awaitAuth ? '' :
-                ( authContext.loggedIn ?
-                    <div tabIndex={0} onClick={authContext.logout} title="Log out of current account" className="h-min text-lg font-semibold mx-1 px-2 py-[2px] cursor-pointer transition-all text-red-500">Logout</div>
+                ( authContext.loggedIn && data ?
+                    <div className="mt-2 sm:mt-0 sm:ml-4">
+                        <div className="text-sm italic opacity-90">You are already logged in as:</div>
+                        <div className="flex gap-2 items-center my-1 px-2 py-1 bg-slate-400 dark:bg-slate-700 rounded-lg">
+                            <div className="w-8 h-8 rounded-full overflow-hidden">
+                                <Image src={`/imgs/profile.jpg`} alt="Profile Picture" width={32} height={32}></Image>
+                            </div>
+                            <div>
+                                <div className="text-lg font-bold">{data.username}</div>
+                            </div>
+                        </div>
+                        <Link href="/" className="hover:opacity-75 transition-opacity">Start chatting ➜</Link>
+                    </div>
                 :
-                    <Link href="/login" className="h-min rounded-lg shadow text-lg font-semibold mx-1 px-4 py-[2px] cursor-pointer transition-all text-navy-50 bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105">Login</Link>
+                    <div className="flex">
+                        <Link href="/sign-up" className="h-min rounded-lg shadow text-lg font-semibold mx-1 px-4 py-[2px] cursor-pointer transition-all text-navy-50 bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105">Sign Up</Link>
+                        <Link href="/login" className="h-min rounded-lg shadow text-lg font-semibold mx-1 px-4 py-[2px] cursor-pointer transition-all text-navy-50 bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105">Login</Link>
+                    </div>
                 )}
-                <div className=""><ThemeSwitch></ThemeSwitch></div>
-                <div onClick={()=>{setOpen(!open)}} tabIndex={0} className="cursor-pointer sm:hidden p-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" height="40" viewBox="0 96 960 960" width="40"><path d="M120 816v-60h720v60H120Zm0-210v-60h720v60H120Zm0-210v-60h720v60H120Z"/></svg>
-                </div>
             </div>
+        </div>
         </div>
     )
 }

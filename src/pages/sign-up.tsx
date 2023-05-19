@@ -1,6 +1,7 @@
 import FormInput from "@/components/FormInput";
+import Navbar from "@/components/Navbar";
 import { AuthContext } from "@/context/AuthContext";
-import { SignUpValidator } from "@/types/authValidation";
+import { SignUpValidator } from "@/utils/validation/authValidation";
 import axios, { AxiosError } from "axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -31,7 +32,7 @@ export default function SignUp() {
         axios.post('/api/auth/signup', {email: email.current.getValue(), user: user.current.getValue(), pass: pass.current.getValue()})
         .then((res)=>{
             authContext.updateAuth(res.data["refresh_token"], res.data["resource_token"]);
-            router.push('/dashboard');
+            router.push('/');
         }).catch((err: AxiosError<any, any>)=>{
             setError(err.response?.data.error || (err.response?.status + " " + err.response?.statusText))
         }).finally(()=>{setLoading(false)})
@@ -39,7 +40,8 @@ export default function SignUp() {
     
     return (
         <>
-            <div className="w-fill flex justify-center mt-8">
+            <Navbar></Navbar>
+            <div className="w-fill flex justify-center mt-16">
                 <div className="rounded-lg shadow-lg px-6 sm:px-16 py-4 bg-slate-200 dark:bg-slate-800">
                     <h1 className="mb-4 text-2xl font-bold text-center">Sign Up</h1>
                     <form className="flex flex-col items-center" onSubmit={onSubmit}>
