@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+    @apply bg-navy-50 text-neutral-900;
+}
+
+html.dark {
+    @apply text-navy-50;
+    background-color: #001220;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:focus {
+    transition: background-color 2147483647s 0s, color 2147483647s 0s;
+}
+
+.nav-item {
+    @apply text-lg font-semibold px-5 pt-2 pb-1 cursor-pointer transition-[border-color] border-slate-200 dark:border-slate-800 border-b-4 bg-slate-200 hover:border-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:hover:border-blue-700 dark:focus:border-blue-700;
+}
