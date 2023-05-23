@@ -3,12 +3,31 @@
 @tailwind utilities;
 
 html {
-    @apply bg-navy-50 text-neutral-900;
+    @apply w-full h-screen bg-navy-50 text-neutral-900;
+    --tw-bg-opacity: 0.5;
 }
 
 html.dark {
     @apply text-navy-50;
     background-color: #001220;
+}
+
+.gradient, html {
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    background: rgb(195,222,255);
+    background: -moz-linear-gradient(150deg, rgba(195,222,255,var(--tw-bg-opacity)) 0%, rgba(205,255,245,var(--tw-bg-opacity)) 100%);
+    background: -webkit-linear-gradient(150deg, rgba(195,222,255,var(--tw-bg-opacity)) 0%, rgba(205,255,245,var(--tw-bg-opacity)) 100%);
+    background: linear-gradient(150deg, rgba(195,222,255,var(--tw-bg-opacity)) 0%, rgba(205,255,245,var(--tw-bg-opacity)) 100%);
+}
+
+:is(.dark .gradient), 
+html.dark {
+    background: #001220;
+    background: -moz-linear-gradient(144deg, rgba(6,69,80,var(--tw-bg-opacity)) 0%, rgba(50,0,80,var(--tw-bg-opacity)) 100%), rgb(0,0,0);
+    background: -webkit-linear-gradient(144deg, rgba(6,69,80,var(--tw-bg-opacity)) 0%, rgba(50,0,80,var(--tw-bg-opacity)) 100%), rgb(0,0,0);
+    background: linear-gradient(144deg, rgba(6,69,80,var(--tw-bg-opacity)) 0%, rgba(50,0,80,var(--tw-bg-opacity)) 100%), rgb(0,0,0);
 }
 
 input:-webkit-autofill,
@@ -18,4 +37,29 @@ input:-webkit-autofill:focus {
 
 .nav-item {
     @apply text-lg font-semibold px-5 pt-2 pb-1 cursor-pointer transition-[border-color] border-slate-200 dark:border-slate-800 border-b-4 bg-slate-200 hover:border-blue-500 focus:border-blue-500 dark:bg-slate-800 dark:hover:border-blue-700 dark:focus:border-blue-700;
+}
+
+.skeleton-pfp {
+    @apply w-12 h-12 flex-shrink-0 rounded-full bg-current opacity-25 select-none;
+}
+
+.skeleton-text {
+    @apply w-min scale-y-75 rounded-lg bg-current opacity-25 select-none;
+}
+
+.skeleton-text.faint {
+    @apply opacity-10;
+}
+
+
+::-webkit-scrollbar {
+    @apply w-3;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-slate-500 bg-opacity-50 rounded-lg w-2;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-black bg-opacity-50 rounded-lg;
 }
