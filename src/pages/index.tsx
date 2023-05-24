@@ -72,7 +72,7 @@ export default function Home() {
                         </>
                     }
                 </div>
-                {/* <div><ThemeSwitch></ThemeSwitch></div> */}
+                <div><ThemeSwitch></ThemeSwitch></div>
             </div>
             <div className="flex flex-col w-full relative pt-2 pr-2">
                 <div className="sticky flex bottom-2 left-2 right-2 mx-2 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg">
