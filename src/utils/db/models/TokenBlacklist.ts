@@ -8,6 +8,11 @@ const jwtIdSchema = new Schema<jwtId>({
     _id: Buffer
 });
 
-const blacklist = mongoose.model<jwtId>('TokenBlacklist', jwtIdSchema, 'TokenBlacklist');
+// Rename _id to id
+jwtIdSchema.set('toJSON', {
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc, ret) { delete ret._id }
+});
 
-export default blacklist;
+export default mongoose.models.TokenBlacklist as mongoose.Model<jwtId> || mongoose.model<jwtId>('TokenBlacklist', jwtIdSchema, 'tokenBlacklist');

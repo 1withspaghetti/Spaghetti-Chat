@@ -9,9 +9,9 @@ const validator = string().required('Required').matches(/^\d+$/);
 
 async function GET(req: NextApiRequest, res: NextApiResponse) {
   verifyResourceJWT(req.headers.authorization);
-  const id = parseInt(await validator.validate(req.query.id));
+  const _id = parseInt(await validator.validate(req.query.id));
 
-  var user = await User.findOne({id}, {id: true, username: true, avatar: true, color: true, meta: true});
+  var user = await User.findOne({_id}, {_id: true, username: true, avatar: true, color: true, meta: true});
   if (!user)throw new ApiError("Unknown user", HttpStatusCode.NotFound);
   res.status(200).json(user.toJSON());
 }

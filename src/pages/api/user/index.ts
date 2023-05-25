@@ -6,9 +6,9 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 
 
 async function GET(req: NextApiRequest, res: NextApiResponse) {
-  var id = verifyResourceJWT(req.headers.authorization);
+  var _id = verifyResourceJWT(req.headers.authorization);
 
-  var user = await User.findOne({id}, {id: true, username: true, avatar: true, color: true, meta: true});
+  var user = await User.findOne({_id}, {_id: true, username: true, avatar: true, color: true, meta: true});
   if (!user) throw new ApiError("Unknown user", HttpStatusCode.NotFound);
   res.status(200).json(user.toJSON());
 }

@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, mongo } from "mongoose";
 
 export type IUser = {
     _id: number,
@@ -26,6 +26,11 @@ const userSchema = new Schema<IUser>({
     created: { type: Date, default: Date.now },
 });
 
-const user = mongoose.model<IUser>('User', userSchema);
+// Rename _id to id
+userSchema.set('toJSON', {
+    virtuals: true,
+    versionKey: false,
+    transform: function (doc, ret) { delete ret._id }
+});
 
-export default user;
+export default mongoose.models.User as mongoose.Model<IUser> || mongoose.model<IUser>('User', userSchema);
