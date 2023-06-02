@@ -3,14 +3,9 @@ import { useRef, useState } from "react";
 export default function MessageInput() {
 
     const input = useRef<HTMLTextAreaElement>(null);
-    const [inputRows, setInputRows] = useState<number>(1);
 
     function adjustSize() {
         if (!input.current) return;
-        console.log('test');
-        /*if (input.current.scrollTop != 0 && inputRows < 8) {
-            setInputRows(inputRows+1);
-        }*/
         input.current.style.height = "0px";
         input.current.style.height = Math.min(input.current.scrollHeight, 256) + "px";
     }
@@ -21,7 +16,7 @@ export default function MessageInput() {
                 <div title="Send message" tabIndex={0} className="opacity-25 hover:opacity-50 transition-opacity cursor-pointer">
                     <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 96 960 960"><path d="M97 849V303q0-25 21-38.5t45-4.5l644 272q29 12 29 44t-29 44L163 891q-24 10-45-3.5T97 849Zm83-57 516-216-516-219v146l253 73-253 71v145Zm0-216V357v435-216Z"/></svg>
                 </div>
-                <textarea ref={input} placeholder="Message @1withspaghetti" autoComplete="none" rows={inputRows} 
+                <textarea ref={input} placeholder="Message @1withspaghetti" autoComplete="none" rows={1}
                     onInput={adjustSize}
                     className="mt-1 px-2 w-full bg-transparent outline-none resize-none">
                 </textarea>

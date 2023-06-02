@@ -26,7 +26,7 @@ async function POST(req: NextApiRequest, res: NextApiResponse<AuthTokenPair>) {
 
     var _id = crypto.randomInt(281474976710655);
 
-    var salt = crypto.randomBytes(8);
+    var salt = crypto.randomBytes(16);
     var hash = crypto.createHash("sha512").update(body.pass).update(salt).digest();
 
     await new User({

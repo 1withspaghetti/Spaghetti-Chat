@@ -44,7 +44,7 @@ input:-webkit-autofill:focus {
 }
 
 .skeleton-text {
-    @apply w-min scale-y-75 rounded-lg bg-current opacity-25 select-none;
+    @apply w-full scale-y-75 rounded-lg bg-current opacity-25 text-opacity-0 select-none overflow-hidden;
 }
 
 .skeleton-text.faint {
