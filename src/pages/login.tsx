@@ -1,5 +1,5 @@
 import FormInput from "@/components/FormInput";
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/LoginNavbar";
 import { AuthContext } from "@/context/AuthContext";
 import { LoginValidator } from "@/utils/validation/authValidation";
 import axios, { AxiosError } from "axios";
