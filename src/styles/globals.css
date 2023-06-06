@@ -52,12 +52,24 @@ input:-webkit-autofill:focus {
 }
 
 
+:root {
+    --scroll-width: 0.75rem;
+}
+
+.slim-scrollbar {
+    --scroll-width: 0.5rem;
+}
+
+.thin-scrollbar {
+    --scroll-width: 0.25rem;
+}
+
 ::-webkit-scrollbar {
-    @apply w-3;
+    width: var(--scroll-width);
 }
 
 ::-webkit-scrollbar-thumb {
-    @apply bg-slate-500 bg-opacity-50 rounded-lg w-2;
+    @apply bg-slate-500 bg-opacity-50 rounded-lg;
 }
 
 ::-webkit-scrollbar-track {
