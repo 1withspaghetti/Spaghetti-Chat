@@ -100,12 +100,7 @@ export default function Friends() {
                         <div className="sticky flex z-10 top-0 left-0 right-0 mr-2 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Incoming Friend Requests</div>
                         <div className="flex flex-col w-full mt-2">
                             {!friendData ? 
-                                [10, 17, 9, 12, 8].map((x, i) =>
-                                    <div className="flex items-center gap-2 py-1 w-full" key={i}>
-                                        <SkeletonProfile/>
-                                        <SkeletonText className="text-lg font-bold" width={x*10}></SkeletonText>
-                                    </div>
-                                )
+                                <div className="italic font-bold text-center opacity-50">Loading...</div> 
                                 :
                                 (friendData.incoming.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Incoming Friend Requests</div> 
@@ -122,12 +117,7 @@ export default function Friends() {
                         <div className="sticky flex z-10 top-0 left-0 right-0 mr-2 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Outgoing Friend Requests</div>
                         <div className="flex flex-col w-full mt-2">
                             {!friendData ? 
-                                [17, 10, 9].map((x, i) =>
-                                    <div className="flex items-center gap-2 py-1 w-full" key={i}>
-                                        <SkeletonProfile/>
-                                        <SkeletonText className="text-lg font-bold" width={x*10}></SkeletonText>
-                                    </div>
-                                )
+                                <div className="italic font-bold text-center opacity-50">Loading...</div> 
                                 :
                                 (friendData.outgoing.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Outgoing Friend Requests</div> 
@@ -144,7 +134,7 @@ export default function Friends() {
                     <div className="sticky flex z-10 top-0 left-0 right-0 mr-2 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">All Friends</div>
                     <div className="flex flex-col w-full mt-2">
                         {!friendData ? 
-                                [10, 17, 9, 12, 8, 15, 11, 13, 14, 17, 10, 17, 9, 12, 8, 15, 11, 13, 14, 17].map((x, i) =>
+                                [10, 17, 9, 12, 8, 15, 11, 13, 14, 17].map((x, i) =>
                                     <div className="flex items-center gap-2 py-1 w-full" key={i}>
                                         <SkeletonProfile/>
                                         <SkeletonText className="text-lg font-bold" width={x*10}></SkeletonText>
