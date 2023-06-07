@@ -3,11 +3,13 @@ import { InputHTMLAttributes } from "react";
 import { Schema, ValidationError } from "yup";
 
 type Props = {
-    attr: InputHTMLAttributes<HTMLInputElement>, 
+    attr?: InputHTMLAttributes<HTMLInputElement>, 
     id: string, 
     label: string, 
     validator?: Schema,
-    children?: any
+    children?: any,
+    width?: number,
+    class?: string
 }
 
 export default class FormInput extends React.Component<Props> {
@@ -41,18 +43,23 @@ export default class FormInput extends React.Component<Props> {
         }
     }
 
+    setValue(val: string) {
+        this.input.current!.value = val;
+        this.testInput();
+    }
+
     getValue(): string {
         return this.input.current?.value || "";
     }
 
     render(): React.ReactNode {
         return (
-            <div className="w-72 mt-2">
+            <div className="mt-2 w-full" style={{maxWidth: `${this.props.width || 288}px`}}>
                 <div className="flex justify-between font-semibold">
                     <label htmlFor={this.props.id}>{this.props.label}</label>
                     {this.props.children}
                 </div>
-                <input ref={this.input} type="text" id={this.props.id} name={this.props.id} {...this.props.attr} onChange={()=>this.testInput()} className={`w-full rounded shadow border-[3px] px-1 bg-neutral-100 dark:bg-slate-700 outline-none ${this.state.valid ? 'border-transparent focus:border-blue-500 dark:focus:border-blue-700' : 'border-red-500'}`}></input>
+                <input ref={this.input} type="text" id={this.props.id} name={this.props.id} onChange={()=>this.testInput()} className={`w-full rounded shadow border-[3px] px-1 bg-neutral-100 dark:bg-slate-700 outline-none ${this.state.valid ? 'border-transparent focus:border-blue-500 dark:focus:border-blue-700' : 'border-red-500'} ${this.props.class || ''}`} {...this.props.attr}></input>
                 {!this.state.valid && <div className="text-sm text-red-500">{this.state.error}</div>}
             </div>
         )

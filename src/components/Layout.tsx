@@ -80,7 +80,7 @@ export default function Layout({children}: {children: React.ReactNode}) {
                         title="Close Sidebar" onClick={()=>{setOpen(false)}}>⟨</div>
                 </div>
             </div>
-            <div className="w-full relative min-w-[calc(100vw-64px)] sm:min-w-0">
+            <div className="w-full relative min-w-[calc(100vw-64px)] sm:min-w-0 h-screen">
                 {children}
             </div>
         </div>
