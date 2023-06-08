@@ -1,3 +1,4 @@
+import { NextApiResponseWithSocket } from "@/types/next";
 import { ApiError, apiHandler } from "@/utils/api";
 import FriendRequest from "@/utils/db/models/FriendRequest";
 import User, { transformId } from "@/utils/db/models/User";
@@ -17,18 +18,29 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     res.status(200).json({friends: friends[0].friends.map((d: any)=>transformId(d)) || [], incoming: incoming.map(d=>transformId(d.from[0])), outgoing: outgoing.map(d=>transformId(d.to[0]))});
 }
 
-async function POST(req: NextApiRequest, res: NextApiResponse) {
+async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     const id = verifyResourceJWT(req.headers.authorization);
     const to = await UserIdValidatorNumber.validate(req.body.to);
     const acceptOnly = req.query.acceptOnly == "true";
 
     // Check if the user is trying to send a friend request to themselves
-    if (id == to) throw new ApiError("You can't send a friend request to yourself", HttpStatusCode.BadRequest);
+    if (id == to) {
+        // Remove the friend request from the user's outgoing friend requests
+        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {pull: [to]}});
+        throw new ApiError("You can't send a friend request to yourself", HttpStatusCode.BadRequest);
+    }
 
     await mongodb();
     // Check if the user is already friends with the other user
     var already = await User.count({_id: id, friends: to});
-    if (already > 0) throw new ApiError("You are already friends with that person", HttpStatusCode.BadRequest);
+    if (already > 0) {
+        // Remove the friend request from the user's outgoing friend requests
+        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {pull: [to]}});
+        throw new ApiError("You are already friends with that person", HttpStatusCode.BadRequest);
+    }
+
+    const friend = await User.findOne({_id: to}, {_id: true, username: true, avatar: true, color: true});
+    if (!friend) throw new ApiError("That user doesn't exist", HttpStatusCode.BadRequest);
 
     // Check if friend request already exists
     var existing = await FriendRequest.findOne({$or:[{to, from: id}, {to: id, from: to}]});
@@ -37,6 +49,13 @@ async function POST(req: NextApiRequest, res: NextApiResponse) {
         await User.updateOne({_id: id}, {$addToSet: {friends: existing.from}});
         await User.updateOne({_id: existing.from}, {$addToSet: {friends: id}});
         await FriendRequest.deleteOne({_id: existing._id});
+
+        // Update on sender client
+        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", incoming: {pull: [to]}, outgoing: {pull: [to]}, friends: {push: [friend.toJSON()]}});
+        // Update on receiver client
+        const user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true});
+        res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {pull: [id]}, outgoing: {pull: [id]}, friends: {push: [user?.toJSON()]}});
+        
         res.status(200).json({success: true});
         return;
     } else if (existing) throw new ApiError("There is already a friend request to that person", HttpStatusCode.BadRequest);
@@ -50,10 +69,16 @@ async function POST(req: NextApiRequest, res: NextApiResponse) {
     if (requestCount >= 25) throw new ApiError("You can't send more than 25 active friend requests at a time, please cancel some of them to continue", HttpStatusCode.BadRequest);
 
     await new FriendRequest({to, from: id}).save();
+    // Update on sender client
+    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {push: [friend.toJSON()]}});
+    // Update on receiver client
+    const user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true});
+    res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {push: [user?.toJSON()]}});
+
     res.status(200).json({success: true});
 }
 
-async function DELETE(req: NextApiRequest, res: NextApiResponse) {
+async function DELETE(req: NextApiRequest, res: NextApiResponseWithSocket) {
     const id = verifyResourceJWT(req.headers.authorization);
     const user = parseInt(await UserIdValidatorString.validate(req.query.user));
 
@@ -63,6 +88,11 @@ async function DELETE(req: NextApiRequest, res: NextApiResponse) {
     // Remove the users from each other's friends list
     await User.updateOne({_id: id}, {$pull: {friends: user}});
     await User.updateOne({_id: user}, {$pull: {friends: id}});
+    // Update on sender client
+    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {pull: [user]}, incoming: {pull: [user]}, friends: {pull: [user]}});
+    // Update on receiver client
+    res.socket.server.io.to(`u${user}`).emit("update", {type: "friends", outgoing: {pull: [id]}, incoming: {pull: [id]}, friends: {pull: [id]}});
+
     res.status(200).json({success: true});
 }
 

@@ -4,11 +4,15 @@ import { useRouter } from "next/router";
 import { useContext, useEffect, useState } from "react";
 import Image from 'next/image';
 import SkeletonText from "@/components/loader/SkeletonText";
+import io, { Socket } from 'socket.io-client';
+import Link from "next/link";
 
-export default function Layout({children}: {children: React.ReactNode}) {
+export default function Layout(props: {children: React.ReactNode, onUpdate: (data: any)=>void}) {
 
     var authContext = useContext(AuthContext);
     const router = useRouter();
+
+    const [socket, setSocket] = useState<Socket>();
 
     const [selfData, setSelfData] = useState<any>();
     const [channelData, setChannelData] = useState<any>();
@@ -23,6 +27,25 @@ export default function Layout({children}: {children: React.ReactNode}) {
         axios.get('/api/user', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setSelfData(res.data);
         })
+
+        axios.get('/api/ws').then(res=>{
+            const socket = io({auth: {token: authContext.resourceToken}});
+            socket.on('connect', ()=>{
+                console.log('WebSocket connected');
+            });
+            socket.on('message', (data)=>{
+                console.log(`Received message: ${data}`);
+            });
+            socket.on('update', (data)=>{
+                console.log(`Received update:`,data);
+                props.onUpdate(data);
+            })
+            setSocket(socket);
+        });
+        // Cleanup
+        return ()=>{
+            if (socket) socket.disconnect();
+        }
     }, [authContext.awaitAuth]);
 
 
@@ -60,6 +83,9 @@ export default function Layout({children}: {children: React.ReactNode}) {
                 <div className={`flex-shrink-0 relative w-full h-full ${open ? 'pr-6 slim-scrollbar' : 'thin-scrollbar'}`}>
                     <div className="w-full h-[calc(100vh-64px)] overflow-y-auto">
                         <div>
+                            <div className={`flex justify-center ${open ? '' : ''}`}>
+                                <Link href="/friends" className={`text-sm font-semibold text-center bg-black bg-opacity-0 dark:bg-opacity-10 shadow ${open ? 'w-fit rounded px-4 py-1 my-2' : 'w-full py-3'} hover:bg-opacity-10 hover:dark:bg-opacity-20 transition-all`}>Friends</Link>
+                            </div>
                             { true ?
                                 <>
                                     {[12, 16, 9, 10, 15, 9, 12, /*15, 17, 10, 8*/].map((x, i) =>
@@ -81,7 +107,7 @@ export default function Layout({children}: {children: React.ReactNode}) {
                 </div>
             </div>
             <div className="w-full relative min-w-[calc(100vw-64px)] sm:min-w-0 h-screen">
-                {children}
+                {props.children}
             </div>
         </div>
     )

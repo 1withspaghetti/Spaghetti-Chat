@@ -17,14 +17,28 @@ export default function Friends() {
     useEffect(()=>{
         if (authContext.awaitAuth || !authContext.loggedIn || friendData) return;
 
-        updateFriendData();
-    }, [authContext.awaitAuth]);
-
-    function updateFriendData() {
         axios.get('/api/user/friend', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setFriendData(res.data);
         })
+    }, [authContext.awaitAuth]);
+
+    // Handle updates sent from server via WebSocket
+    function onUpdate(data: any) {
+        if (data.type != "friends") return;
+
+        var newFriendData = friendData || {incoming: [], outgoing: [], friends: []};
+        if (data.incoming) updateArray(newFriendData.incoming, data.incoming);
+        if (data.outgoing) updateArray(newFriendData.outgoing, data.outgoing);
+        if (data.friends) updateArray(newFriendData.friends, data.friends);
+        setFriendData(newFriendData);
     }
+    function updateArray(arr: any[], data: any) {
+        for (let i of data.push||[]) arr.push(i);
+        for (let items of data.pull||[]) arr = arr.filter(x => items.indexOf(x) == -1);
+        arr.sort((a, b) => a.username.localeCompare(b.username));
+    }
+
+
 
     const searchElement = useRef<FormInput>(null);
     const [searchResults, setSearchResults] = useState<Array<any>>([]);
@@ -34,33 +48,31 @@ export default function Friends() {
             if (!q) return setSearchResults([]);
             axios.get("/api/user/search", {params: {q}, headers: {Authorization: authContext.resourceToken}}).then(res => {
                 setSearchResults(res.data.results);
+            }).catch(() => {
+                console.error("Failed to search users");
             });
     }
 
     function addFriend(user: any) {
-        var data = friendData;
-        data?.outgoing.push(user);
-        data?.outgoing.sort((a, b) => a.username.localeCompare(b.username));
-        setFriendData(data);
-        axios.post("/api/user/friend", {to: user.id}, {headers: {Authorization: authContext.resourceToken}}).finally(() => {
-            searchElement.current?.setValue("");
-            setSearchResults([]);
-            updateFriendData();
+        axios.post("/api/user/friend", {to: user.id}, {headers: {Authorization: authContext.resourceToken}}).catch(()=>{
+            console.error("Failed to add friend");
         });
+        searchElement.current?.setValue("");
+        setSearchResults([]);
     }
 
     function acceptFriend(user: any) {
-        if (friendData) {
-            var data = {incoming: friendData.incoming, outgoing: friendData.outgoing, friends: friendData.friends};
+        var data = friendData;
+        if (data) {
             data.incoming = data.incoming.filter(x => x.id != user.id);
-            data.friends.push(user);
-            data.friends.sort((a, b) => a.username.localeCompare(b.username));
             setFriendData(data);
         }
-        axios.post("/api/user/friend?acceptOnly=true", {to: user.id}, {headers: {Authorization: authContext.resourceToken}}).finally(() => {
-            updateFriendData();
+        axios.post("/api/user/friend?acceptOnly=true", {to: user.id}, {headers: {Authorization: authContext.resourceToken}}).catch(() => {
+            console.error("Failed to accept friend");
         });
     }
+
+
 
     const [pendingRemoval, setPendingRemoval] = useState<any>();
 
@@ -73,13 +85,13 @@ export default function Friends() {
             setFriendData(data);
         }
         setPendingRemoval(undefined);
-        axios.delete(`/api/user/friend?user=${user.id}`, {headers: {Authorization: authContext.resourceToken}}).finally(() => {
-            updateFriendData();
+        axios.delete(`/api/user/friend?user=${user.id}`, {headers: {Authorization: authContext.resourceToken}}).catch(() => {
+            console.error("Failed to remove friend");
         });
     }
 
     return (
-        <Layout>
+        <Layout onUpdate={onUpdate}>
             <div className="w-full flex flex-col px-4 items-center mt-2 mb-4 pr-6">
                 <div className="w-full max-w-lg px-4 py-1 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Add Friends</div>
                 <div className="relative w-full max-w-sm">

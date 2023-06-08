@@ -1,3 +1,4 @@
+import { NextApiHandlerWithSocket, NextApiResponseWithSocket } from "@/types/next";
 import { HttpStatusCode, Method } from "axios";
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next";
 import { ValidationError } from "yup";
@@ -12,7 +13,7 @@ export class ApiError extends Error {
 }
 
 type ApiMethodHandlers = {
-    [key in Uppercase<Method>]?: NextApiHandler;
+    [key in Uppercase<Method>]?: NextApiHandler|NextApiHandlerWithSocket;
 };
 
 export function apiHandler(handlers: ApiMethodHandlers): NextApiHandler {
@@ -26,7 +27,7 @@ export function apiHandler(handlers: ApiMethodHandlers): NextApiHandler {
 
             if (!handler) throw new ApiError("Http Method not allowed", HttpStatusCode.MethodNotAllowed);
 
-            await handler(req, res);
+            await handler(req, res as NextApiResponseWithSocket);
         } catch (err) {
             errorHandler(err, req, res);
         }
