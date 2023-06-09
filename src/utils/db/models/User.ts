@@ -1,4 +1,5 @@
-import mongoose, { Schema, mongo } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { transformIdSchemaOptions } from "@/utils/db/dbUtil";
 
 export type IUser = {
     _id: number,
@@ -29,17 +30,6 @@ const userSchema = new Schema<IUser>({
 });
 
 // Rename _id to id
-userSchema.set('toJSON', {
-    virtuals: true,
-    versionKey: false,
-    transform: function (doc, ret) { delete ret._id }
-});
-
-export function transformId(user: any) {
-    if (!user) return user;
-    user.id = user._id;
-    delete user._id;
-    return user;
-}
+userSchema.set('toJSON', transformIdSchemaOptions);
 
 export default mongoose.models.User as mongoose.Model<IUser> || mongoose.model<IUser>('User', userSchema);

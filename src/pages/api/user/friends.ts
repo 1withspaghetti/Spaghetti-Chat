@@ -1,7 +1,9 @@
 import { NextApiResponseWithSocket } from "@/types/next";
 import { ApiError, apiHandler } from "@/utils/api";
+import { generateRandomId, transformId } from "@/utils/db/dbUtil";
+import Channel from "@/utils/db/models/Channel";
 import FriendRequest from "@/utils/db/models/FriendRequest";
-import User, { transformId } from "@/utils/db/models/User";
+import User from "@/utils/db/models/User";
 import mongodb from "@/utils/db/mongodb";
 import { verifyResourceJWT } from "@/utils/jwt";
 import { UserIdValidatorNumber, UserIdValidatorString } from "@/utils/validation/userValidation";
@@ -13,7 +15,7 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
 
     await mongodb();
     const friends = await User.aggregate([{$match: {_id: id}}, {$lookup: {from: "users", localField: "friends", foreignField: "_id", as: "friends"}}, {$project: {"friends._id": true, "friends.username": true, "friends.avatar": true, "friends.color": true}}]);
-    const incoming = await FriendRequest.aggregate([{$match: {to: id}}, {$lookup: {from: "users", localField: "from", foreignField: "_id", as: "from"}}, {$project: {"from._id": true, "from.username": true, "from.avatar": true, "fron.color": true}}]);
+    const incoming = await FriendRequest.aggregate([{$match: {to: id}}, {$lookup: {from: "users", localField: "from", foreignField: "_id", as: "from"}}, {$project: {"from._id": true, "from.username": true, "from.avatar": true, "from.color": true}}]);
     const outgoing = await FriendRequest.aggregate([{$match: {from: id}}, {$lookup: {from: "users", localField: "to", foreignField: "_id", as: "to"}}, {$project: {"to._id": true, "to.username": true, "to.avatar": true, "to.color": true}}]);
     res.status(200).json({friends: friends[0].friends.map((d: any)=>transformId(d)) || [], incoming: incoming.map(d=>transformId(d.from[0])), outgoing: outgoing.map(d=>transformId(d.to[0]))});
 }
@@ -56,6 +58,8 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
         const user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true});
         res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {pull: [id]}, outgoing: {pull: [id]}, friends: {push: [user?.toJSON()]}});
         
+        if (await Channel.count({dm: true, members: [id, to]}) == 0) await new Channel({_id: generateRandomId(), dm: true, members: [id, to]}).save();
+
         res.status(200).json({success: true});
         return;
     } else if (existing) throw new ApiError("There is already a friend request to that person", HttpStatusCode.BadRequest);

@@ -7,6 +7,7 @@ import { HttpStatusCode } from "axios";
 import { AuthTokenPair, createJWTPair } from "@/utils/jwt";
 import User from "@/utils/db/models/User";
 import mongodb from "@/utils/db/mongodb";
+import { generateRandomId } from "@/utils/db/dbUtil";
 
 async function POST(req: NextApiRequest, res: NextApiResponse<AuthTokenPair>) {
     const body = await object(SignUpValidator).validate(req.body);
@@ -24,7 +25,7 @@ async function POST(req: NextApiRequest, res: NextApiResponse<AuthTokenPair>) {
 
     if (userByEmail) throw new ApiError("Email is already in use", HttpStatusCode.BadRequest);
 
-    var _id = crypto.randomInt(281474976710655);
+    var _id = generateRandomId();
 
     var salt = crypto.randomBytes(16);
     var hash = crypto.createHash("sha512").update(body.pass).update(salt).digest();
