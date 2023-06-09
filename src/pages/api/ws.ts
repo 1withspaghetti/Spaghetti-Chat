@@ -4,12 +4,6 @@ import { Server } from "socket.io";
 import { NextApiResponseWithSocket } from "@/types/next";
 import { verifyResourceJWT } from "@/utils/jwt";
 
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-};
-
 async function GET(req: NextApiRequest, res: NextApiResponseWithSocket) {
     if (!res.socket.server.io) {
         console.log("socket.io is initializing");

@@ -1,18 +1,15 @@
-import { AuthContext } from '@/context/AuthContext'
-import '@/styles/globals.css'
-import axios, { AxiosError } from 'axios'
-import type { AppProps } from 'next/app'
-import { Poppins } from 'next/font/google'
-import Head from 'next/head'
-import { useEffect, useState } from 'react'
+"use client";
 
-const poppins = Poppins({weight: ["400","600","700"], subsets: ["latin-ext"]})
+import { AuthContext } from "@/context/AuthContext";
+import axios, { AxiosError } from "axios";
+import { createContext, useEffect, useState } from "react";
 
 var refreshToken: string|undefined = undefined;
 var tokensUpdated: boolean = false;
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function Layout({ children }: { children: React.ReactNode}) {
     
+
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const [resourceToken, setResourceToken] = useState<string>();
     const [awaitAuth, setAwaitAuth] = useState<boolean>(true);
@@ -83,15 +80,7 @@ export default function App({ Component, pageProps }: AppProps) {
     
     return (
         <AuthContext.Provider value={{loggedIn, resourceToken, awaitAuth, updateAuth: setTokens, logout}}>
-            <Head>
-                <title>{ pageProps.title ? `${pageProps.title} | Spaghetti Chat` : `Spaghetti Chat`}</title>
-                <meta name="description" content="TODO" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <link rel="icon" href="/favicon.ico" />
-            </Head>
-            <div className={poppins.className}>
-                <Component {...pageProps} />
-            </div>
+            {children}
         </AuthContext.Provider>
     )
-}
+  }

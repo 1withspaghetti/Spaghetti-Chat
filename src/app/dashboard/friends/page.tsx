@@ -1,8 +1,8 @@
+'use client';
+
 import { AuthContext } from "@/context/AuthContext";
-import { useRouter } from "next/router";
 import { useContext, useEffect, useRef, useState } from "react";
 import SkeletonText from "@/components/loader/SkeletonText";
-import Layout from "@/components/Layout";
 import FormInput from "@/components/FormInput";
 import axios from "axios";
 import User from "@/components/User";
@@ -11,7 +11,6 @@ import SkeletonProfile from "@/components/loader/SkeletonProfile";
 export default function Friends() {
     
     var authContext = useContext(AuthContext);
-    const router = useRouter();
 
     const [friendData, setFriendData] = useState<{incoming: any[], outgoing: any[], friends: any[]}>();
     useEffect(()=>{
@@ -91,7 +90,7 @@ export default function Friends() {
     }
 
     return (
-        <Layout onUpdate={onUpdate}>
+        <>
             <div className="w-full flex flex-col px-4 items-center mt-2 mb-4 pr-6">
                 <div className="w-full max-w-lg px-4 py-1 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Add Friends</div>
                 <div className="relative w-full max-w-sm">
@@ -178,6 +177,6 @@ export default function Friends() {
                     </div>
                 </div>
             }
-        </Layout>
+        </>
     )
 }

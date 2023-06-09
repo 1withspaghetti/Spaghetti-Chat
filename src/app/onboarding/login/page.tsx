@@ -1,16 +1,20 @@
+'use client';
+
 import FormInput from "@/components/FormInput";
 import Navbar from "@/components/LoginNavbar";
 import { AuthContext } from "@/context/AuthContext";
 import { LoginValidator } from "@/utils/validation/authValidation";
 import axios, { AxiosError } from "axios";
+import { Metadata } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useContext, useRef, useState } from "react";
 
 export default function Login() {
 
     const authContext = useContext(AuthContext);
     const router = useRouter();
+    const query = useSearchParams();
 
     const user = useRef<FormInput>(null);
     const pass = useRef<FormInput>(null);
@@ -29,7 +33,7 @@ export default function Login() {
         axios.post('/api/auth/login', {user: user.current.getValue(), pass: pass.current.getValue()})
         .then((res)=>{
             authContext.updateAuth(res.data["refresh_token"], res.data["resource_token"]);
-            router.push(typeof router.query.url === 'string' ? router.query.url : '/');
+            router.push(query?.get('url') ||'/');
         }).catch((err: AxiosError<any, any>)=>{
             setError(err.response?.data.error || (err.response?.status + " " + err.response?.statusText))
         }).finally(()=>{setLoading(false)});
@@ -63,6 +67,7 @@ export default function Login() {
     )
 }
 
-export function getStaticProps() {
-    return {props: {title: "Login"}}
-  }
+export const metadata: Metadata = {
+    title: 'Login | Spaghetti Chat',
+    description: 'TODO',
+}

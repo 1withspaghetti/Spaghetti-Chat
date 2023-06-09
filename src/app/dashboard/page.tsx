@@ -1,15 +1,11 @@
 import { AuthContext } from "@/context/AuthContext";
-import { useRouter } from "next/router";
 import { useContext } from "react";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import MessageInput from "@/components/MessageInput";
 import SkeletonText from "@/components/loader/SkeletonText";
-import Layout from "@/components/Layout";
+import Layout from "@/app/dashboard/layout";
 
 export default function Home() {
-
-  var authContext = useContext(AuthContext);
-  const router = useRouter();
 
   return (
         <Layout>

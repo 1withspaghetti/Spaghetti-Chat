@@ -1,10 +1,13 @@
+'use client';
+
 import FormInput from "@/components/FormInput";
 import Navbar from "@/components/LoginNavbar";
 import { AuthContext } from "@/context/AuthContext";
 import { SignUpValidator } from "@/utils/validation/authValidation";
 import axios, { AxiosError } from "axios";
+import { Metadata } from "next";
 import Link from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { FormEvent, useContext, useRef, useState } from "react";
 
 export default function SignUp() {
@@ -76,6 +79,7 @@ export default function SignUp() {
     )
 }
 
-export function getStaticProps() {
-    return {props: {title: "Sign Up"}}
+export const metadata: Metadata = {
+    title: 'Sign Up | Spaghetti Chat',
+    description: 'TODO',
 }

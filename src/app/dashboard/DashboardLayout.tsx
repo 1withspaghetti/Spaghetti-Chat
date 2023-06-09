@@ -1,16 +1,19 @@
+"use client";
+
 import { AuthContext } from "@/context/AuthContext";
 import axios from "axios";
-import { useRouter } from "next/router";
+import { usePathname, useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import Image from 'next/image';
 import SkeletonText from "@/components/loader/SkeletonText";
 import io, { Socket } from 'socket.io-client';
 import Link from "next/link";
 
-export default function Layout(props: {children: React.ReactNode, onUpdate: (data: any)=>void}) {
+export default function DashboardLayout(props: {children: React.ReactNode}) {
 
     var authContext = useContext(AuthContext);
     const router = useRouter();
+    const pathname = usePathname();
 
     const [socket, setSocket] = useState<Socket>();
 
@@ -18,7 +21,7 @@ export default function Layout(props: {children: React.ReactNode, onUpdate: (dat
     const [channelData, setChannelData] = useState<any>();
 
     useEffect(()=>{
-        if (!authContext.awaitAuth && !authContext.loggedIn) router.push('/login?url='+router.route);
+        if (!authContext.awaitAuth && !authContext.loggedIn) router.push('/login?url='+pathname);
     }, [authContext]);
 
     useEffect(()=>{
@@ -36,10 +39,10 @@ export default function Layout(props: {children: React.ReactNode, onUpdate: (dat
             socket.on('message', (data)=>{
                 console.log(`Received message: ${data}`);
             });
-            socket.on('update', (data)=>{
-                console.log(`Received update:`,data);
-                props.onUpdate(data);
-            })
+            // socket.on('update', (data)=>{
+            //     console.log(`Received update:`,data);
+            //     props.onUpdate(data);
+            // })
             setSocket(socket);
         });
         // Cleanup
