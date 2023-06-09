@@ -2,15 +2,19 @@ import { AuthContext } from "@/context/AuthContext";
 import { useRouter } from "next/router";
 import { useContext, useEffect, useRef, useState } from "react";
 import SkeletonText from "@/components/loader/SkeletonText";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layouts/DashboardLayout";
 import FormInput from "@/components/FormInput";
 import axios from "axios";
 import User from "@/components/User";
 import SkeletonProfile from "@/components/loader/SkeletonProfile";
+import { NextPageWithLayout } from "./_app";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
+import { SocketContext } from "@/context/SocketContext";
 
-export default function Friends() {
+const Friends: NextPageWithLayout = () => {
     
     var authContext = useContext(AuthContext);
+    var socket = useContext(SocketContext);
     const router = useRouter();
 
     const [friendData, setFriendData] = useState<{incoming: any[], outgoing: any[], friends: any[]}>();
@@ -23,6 +27,13 @@ export default function Friends() {
     }, [authContext.awaitAuth]);
 
     // Handle updates sent from server via WebSocket
+    useEffect(()=>{
+        if (!socket) return;
+        socket.on('update', onUpdate);
+        return ()=>{
+            socket?.off('update', onUpdate);
+        }
+    }, [socket]);
     function onUpdate(data: any) {
         if (data.type != "friends") return;
 
@@ -91,7 +102,7 @@ export default function Friends() {
     }
 
     return (
-        <Layout onUpdate={onUpdate}>
+        <>
             <div className="w-full flex flex-col px-4 items-center mt-2 mb-4 pr-6">
                 <div className="w-full max-w-lg px-4 py-1 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Add Friends</div>
                 <div className="relative w-full max-w-sm">
@@ -178,6 +189,8 @@ export default function Friends() {
                     </div>
                 </div>
             }
-        </Layout>
+        </>
     )
 }
+Friends.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>
+export default Friends;

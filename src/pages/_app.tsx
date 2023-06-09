@@ -1,17 +1,18 @@
 import { AuthContext } from '@/context/AuthContext'
 import '@/styles/globals.css'
 import axios, { AxiosError } from 'axios'
+import { NextPage } from 'next'
 import type { AppProps } from 'next/app'
 import { Poppins } from 'next/font/google'
 import Head from 'next/head'
-import { useEffect, useState } from 'react'
+import { ReactElement, ReactNode, useEffect, useState } from 'react'
 
 const poppins = Poppins({weight: ["400","600","700"], subsets: ["latin-ext"]})
 
 var refreshToken: string|undefined = undefined;
 var tokensUpdated: boolean = false;
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps }: AppProps & {Component: NextPageWithLayout}) {
     
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const [resourceToken, setResourceToken] = useState<string>();
@@ -80,7 +81,8 @@ export default function App({ Component, pageProps }: AppProps) {
         setResourceToken(undefined);
         localStorage.removeItem("session_token");
     }
-    
+
+    const getLayout = Component.getLayout ?? ((page) => page);
     return (
         <AuthContext.Provider value={{loggedIn, resourceToken, awaitAuth, updateAuth: setTokens, logout}}>
             <Head>
@@ -90,8 +92,14 @@ export default function App({ Component, pageProps }: AppProps) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className={poppins.className}>
-                <Component {...pageProps} />
+                {getLayout(
+                    <Component {...pageProps} />
+                )}
             </div>
         </AuthContext.Provider>
     )
+}
+
+export type NextPageWithLayout<P = any, IP = P> = NextPage<P, IP> & {
+    getLayout?: (page: ReactElement) => ReactNode
 }

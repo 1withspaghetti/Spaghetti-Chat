@@ -4,15 +4,16 @@ import { useContext } from "react";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import MessageInput from "@/components/MessageInput";
 import SkeletonText from "@/components/loader/SkeletonText";
-import Layout from "@/components/Layout";
+import { NextPageWithLayout } from "./_app";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 
-export default function Home() {
+const Home: NextPageWithLayout = () => {
 
   var authContext = useContext(AuthContext);
   const router = useRouter();
 
   return (
-        <Layout>
+        <>
             <div className="flex flex-col w-full pt-2 pr-2 h-full">
                 <div className="absolute flex z-10 top-2 left-2 right-2 ml-2 mr-5 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg">
                     <SkeletonText className="text-xl font-bold mr-2" width={200}></SkeletonText>
@@ -40,6 +41,8 @@ export default function Home() {
                 <MessageInput />
                 <div className="absolute top-16 right-12"><ThemeSwitch></ThemeSwitch></div>
             </div>
-        </Layout>
+        </>
   )
 }
+Home.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;
+export default Home;

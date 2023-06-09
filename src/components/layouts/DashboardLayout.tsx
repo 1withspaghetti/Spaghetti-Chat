@@ -6,8 +6,9 @@ import Image from 'next/image';
 import SkeletonText from "@/components/loader/SkeletonText";
 import io, { Socket } from 'socket.io-client';
 import Link from "next/link";
+import { SocketContext } from "@/context/SocketContext";
 
-export default function Layout(props: {children: React.ReactNode, onUpdate: (data: any)=>void}) {
+export default function DashboardLayout(props: {children: React.ReactNode}) {
 
     var authContext = useContext(AuthContext);
     const router = useRouter();
@@ -29,18 +30,15 @@ export default function Layout(props: {children: React.ReactNode, onUpdate: (dat
         })
 
         axios.get('/api/ws').then(res=>{
-            const socket = io({auth: {token: authContext.resourceToken}});
-            socket.on('connect', ()=>{
+            if (socket) return;
+            const newSocket = io({auth: {token: authContext.resourceToken}});
+            newSocket.on('connect', ()=>{
                 console.log('WebSocket connected');
             });
-            socket.on('message', (data)=>{
+            newSocket.on('message', (data)=>{
                 console.log(`Received message: ${data}`);
             });
-            socket.on('update', (data)=>{
-                console.log(`Received update:`,data);
-                props.onUpdate(data);
-            })
-            setSocket(socket);
+            setSocket(newSocket);
         });
         // Cleanup
         return ()=>{
@@ -52,6 +50,7 @@ export default function Layout(props: {children: React.ReactNode, onUpdate: (dat
     const [open, setOpen] = useState<boolean>(true);
 
     return (
+        <SocketContext.Provider value={socket}>
         <div className="fixed top-0 right-0 left-0 bottom-0 gradient bg-opacity-50 flex">
             <div className={`flex flex-col flex-shrink-0 items-stretch w-full gradient bg-opacity-80 rounded-r-lg sm:rounded-r-2xl shadow-xl overflow-hidden ${open ? 'max-w-screen-sm sm:max-w-[20rem]' : 'max-w-[64px]'} transition-all`}
                 onClick={()=>{if(!open) setOpen(true)}}>
@@ -110,5 +109,6 @@ export default function Layout(props: {children: React.ReactNode, onUpdate: (dat
                 {props.children}
             </div>
         </div>
+        </SocketContext.Provider>
     )
 }
