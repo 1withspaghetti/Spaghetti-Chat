@@ -1,6 +1,6 @@
 "use client";
 
-import { AuthContext } from "@/context/AuthContext";
+import AuthContext from "@/context/AuthContext";
 import axios, { AxiosError } from "axios";
 import { createContext, useEffect, useState } from "react";
 

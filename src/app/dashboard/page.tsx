@@ -1,5 +1,3 @@
-import { AuthContext } from "@/context/AuthContext";
-import { useContext } from "react";
 import ThemeSwitch from "@/components/ThemeSwitch";
 import MessageInput from "@/components/MessageInput";
 import SkeletonText from "@/components/loader/SkeletonText";

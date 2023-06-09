@@ -4,10 +4,17 @@ import { Server } from "socket.io";
 import { NextApiResponseWithSocket } from "@/types/next";
 import { verifyResourceJWT } from "@/utils/jwt";
 
+export const config = {
+    api: {
+        bodyParser: false,
+    },
+};
+
 async function GET(req: NextApiRequest, res: NextApiResponseWithSocket) {
     if (!res.socket.server.io) {
         console.log("socket.io is initializing");
-        const io = new Server(res.socket.server as any);
+        const io = new Server(res.socket.server as any, {path: "/api/socket"});
+        setInterval(()=>io.emit("message", "Hello interval"), 5000);
         io.use((socket, next) => {
             if (socket.handshake.auth && socket.handshake.auth.token) {
                 try {

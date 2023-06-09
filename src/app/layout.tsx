@@ -1,8 +1,5 @@
-import { AuthContext } from "@/context/AuthContext";
-import axios, { AxiosError } from "axios";
 import { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { useEffect, useState } from "react";
 import AuthProvider from "./AuthProvider";
 
 import '../styles/globals.css'

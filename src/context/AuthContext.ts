@@ -2,7 +2,7 @@
 
 import { createContext } from "react";
 
-export const AuthContext = createContext<{
+export default createContext<{
     loggedIn: boolean, 
     awaitAuth: boolean,
     resourceToken?: string, 

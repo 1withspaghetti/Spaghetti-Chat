@@ -1,16 +1,18 @@
 'use client';
 
-import { AuthContext } from "@/context/AuthContext";
+import AuthContext from "@/context/AuthContext";
 import { useContext, useEffect, useRef, useState } from "react";
 import SkeletonText from "@/components/loader/SkeletonText";
 import FormInput from "@/components/FormInput";
 import axios from "axios";
 import User from "@/components/User";
 import SkeletonProfile from "@/components/loader/SkeletonProfile";
+import SocketContext from "@/context/SocketContext";
 
 export default function Friends() {
     
     var authContext = useContext(AuthContext);
+    var socketContext = useContext(SocketContext);
 
     const [friendData, setFriendData] = useState<{incoming: any[], outgoing: any[], friends: any[]}>();
     useEffect(()=>{
@@ -22,6 +24,14 @@ export default function Friends() {
     }, [authContext.awaitAuth]);
 
     // Handle updates sent from server via WebSocket
+    useEffect(()=>{
+        if (!socketContext) return;
+        socketContext.on('update', onUpdate);
+        console.log("Socket listening for updates")
+        return ()=>{
+            socketContext?.off('update', onUpdate);
+        }
+    }, [socketContext]);
     function onUpdate(data: any) {
         if (data.type != "friends") return;
 
