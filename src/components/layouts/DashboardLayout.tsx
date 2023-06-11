@@ -1,12 +1,13 @@
 import { AuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useReducer, useState } from "react";
 import Image from 'next/image';
 import SkeletonText from "@/components/loader/SkeletonText";
 import io, { Socket } from 'socket.io-client';
 import Link from "next/link";
 import { SocketContext } from "@/context/SocketContext";
+import { globalReducer } from "@/utils/reducer";
 
 export default function DashboardLayout(props: {children: React.ReactNode}) {
 
@@ -16,7 +17,10 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
     const [socket, setSocket] = useState<Socket>();
 
     const [selfData, setSelfData] = useState<any>();
-    const [channelData, setChannelData] = useState<any>();
+    //const [channelData, setChannelData] = useState<any>();
+
+    const [channels, dispatchChannels] = useReducer(globalReducer, []);
+    const [channelsLoaded, setChannelsLoaded] = useState<boolean>(false);
 
     useEffect(()=>{
         if (!authContext.awaitAuth && !authContext.loggedIn) router.push('/login?url='+router.route);
@@ -29,7 +33,8 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
             setSelfData(res.data);
         })
         axios.get("/api/user/channels", {headers: {Authorization: authContext.resourceToken}}).then(res=>{
-            setChannelData(res.data);
+            dispatchChannels({action: 'set', data: res.data.channels});
+            setChannelsLoaded(true);
         })
 
         axios.get('/api/ws').then(res=>{
@@ -48,6 +53,23 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
             if (socket) socket.disconnect();
         }
     }, [authContext.awaitAuth]);
+
+
+    // Channel updates
+    useEffect(()=>{
+        if (!socket) return;
+        socket.on('update', channelUpdate);
+        return ()=>{
+            socket?.off('update', channelUpdate);
+        }
+    }, [socket]);
+    function channelUpdate(data: any){
+        if (data.type !== 'channels') return;
+
+        console.log(data);
+
+        dispatchChannels(data);
+    }
 
 
     const [open, setOpen] = useState<boolean>(true);
@@ -88,7 +110,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                             <div className={`flex justify-center ${open ? '' : ''}`}>
                                 <Link href="/friends" className={`text-sm font-semibold text-center bg-black bg-opacity-0 dark:bg-opacity-10 shadow ${open ? 'w-fit rounded px-4 py-1 my-2' : 'w-full py-3'} hover:bg-opacity-10 hover:dark:bg-opacity-20 transition-all`}>Friends</Link>
                             </div>
-                            { !channelData ?
+                            { !channelsLoaded ?
                                 <>
                                     {[12, 16, 9, 10, 15, 9, 12, /*15, 17, 10, 8*/].map((x, i) =>
                                         <div className={`flex items-center gap-2 py-1 ${open ? `px-4` : `px-2`} transition-all`} key={i}>
@@ -99,7 +121,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                                 </>
                             :
                                 <>
-                                    {(channelData.channels as any[]).map((x, i) =>
+                                    {(channels).sort((a,b)=>new Date(b.lastMessage).getTime()-new Date(a.lastMessage).getTime()).map((x, i) =>
                                         <Link href={`/channel/${x.id}`} className={`flex items-center gap-2 py-1 bg-black bg-opacity-0 hover:bg-opacity-10 ${open ? `px-4` : `px-2`} transition-all`} key={x.id}>
                                             <div className="skeleton-pfp"></div>
                                             <div className={`text-lg font-bold overflow-hidden whitespace-nowrap text-ellipsis ${open ? 'opacity-100' : 'opacity-0'} transition-opacity`}>{x.name || (x.members as any[]).map(x=>x.username).sort().join(', ')}</div>

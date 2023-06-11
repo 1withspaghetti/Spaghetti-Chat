@@ -1,6 +1,6 @@
 import { AuthContext } from "@/context/AuthContext";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import SkeletonText from "@/components/loader/SkeletonText";
 import FormInput from "@/components/FormInput";
 import axios from "axios";
@@ -9,6 +9,7 @@ import SkeletonProfile from "@/components/loader/SkeletonProfile";
 import { NextPageWithLayout } from "./_app";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { SocketContext } from "@/context/SocketContext";
+import { globalReducer } from "@/utils/reducer";
 
 const Friends: NextPageWithLayout = () => {
     
@@ -17,17 +18,18 @@ const Friends: NextPageWithLayout = () => {
     const router = useRouter();
 
     const [friendData, setFriendData] = useState<boolean>(false);
-    const [incoming, setIncoming] = useState<any[]>([]);
-    const [outgoing, setOutgoing] = useState<any[]>([]);
-    const [friends, setFriends] = useState<any[]>([]);
+
+    const [incoming, dispatchIncoming] = useReducer(globalReducer, []);
+    const [outgoing, dispatchOutgoing] = useReducer(globalReducer, []);
+    const [friends, dispatchFriends] = useReducer(globalReducer, []);
     useEffect(()=>{
         if (authContext.awaitAuth || !authContext.loggedIn || friendData) return;
 
         axios.get('/api/user/friends', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setFriendData(true);
-            setIncoming(res.data.incoming);
-            setOutgoing(res.data.outgoing);
-            setFriends(res.data.friends);
+            dispatchIncoming({action: 'set', data: res.data.incoming});
+            dispatchOutgoing({action: 'set', data: res.data.outgoing});
+            dispatchFriends({action: 'set', data: res.data.friends});
         })
     }, [authContext.awaitAuth]);
 
@@ -42,20 +44,10 @@ const Friends: NextPageWithLayout = () => {
     function onUpdate(data: any) {
         if (data.type != "friends") return;
 
-        if (data.incoming) setIncoming(updateArray(incoming, data.incoming));
-        if (data.outgoing) setOutgoing(updateArray(outgoing, data.outgoing));
-        if (data.friends) setFriends(updateArray(friends, data.friends));
+        if (data.incoming) dispatchIncoming(data.incoming);
+        if (data.outgoing) dispatchOutgoing(data.outgoing);
+        if (data.friends) dispatchFriends(data.friends);
     }
-    function updateArray(arr: any[], data: any) {
-        console.log(arr, data)
-        for (let i of data.push||[]) arr.push(i);
-        arr = arr.filter(x => (data.pull||[]).indexOf(x.id) == -1);
-        arr.sort((a, b) => a.username.localeCompare(b.username));
-        console.log(arr)
-        return arr;
-    }
-
-
 
     const searchElement = useRef<FormInput>(null);
     const [searchResults, setSearchResults] = useState<Array<any>>([]);
@@ -99,7 +91,7 @@ const Friends: NextPageWithLayout = () => {
     }
 
     function acceptFriend(user: any) {
-        setIncoming(incoming.filter(x => x.id != user.id));
+        dispatchIncoming({action: 'delete', data: user});
         axios.post("/api/user/friends?acceptOnly=true", {to: user.id}, {headers: {Authorization: authContext.resourceToken}}).catch(() => {
             console.error("Failed to accept friend");
         });
@@ -110,9 +102,9 @@ const Friends: NextPageWithLayout = () => {
     const [pendingRemoval, setPendingRemoval] = useState<any>();
 
     function removeFriend(user: any) {
-        setIncoming(incoming.filter(x => x.id != user.id));
-        setOutgoing(outgoing.filter(x => x.id != user.id));
-        setFriends(friends.filter(x => x.id != user.id));
+        dispatchIncoming({action: 'delete', data: user});
+        dispatchOutgoing({action: 'delete', data: user});
+        dispatchFriends({action: 'delete', data: user});
         setPendingRemoval(undefined);
         axios.delete(`/api/user/friends?user=${user.id}`, {headers: {Authorization: authContext.resourceToken}}).catch(() => {
             console.error("Failed to remove friend");
@@ -145,7 +137,7 @@ const Friends: NextPageWithLayout = () => {
                                 :
                                 (incoming.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Incoming Friend Requests</div> 
-                                : incoming.map((x, i) => 
+                                : incoming.sort((a, b) => a.username.localeCompare(b.username)).map((x, i) => 
                                     <User {...x} key={i}>
                                         <button className="text-2xl px-1 text-green-500 opacity-50 hover:opacity-75 transition-opacity" title="Accept Friend Request" onClick={()=>{acceptFriend(x)}}>✔</button>
                                         <button className="text-4xl px-1 text-red-500 opacity-50 hover:opacity-75 transition-opacity" title="Deny Friend Request" onClick={()=>{removeFriend(x)}}>⨯</button>
@@ -162,7 +154,7 @@ const Friends: NextPageWithLayout = () => {
                                 :
                                 (outgoing.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Outgoing Friend Requests</div> 
-                                : outgoing.map((x, i) => 
+                                : outgoing.sort((a, b) => a.username.localeCompare(b.username)).map((x, i) => 
                                     <User {...x} key={i}>
                                         <button className="text-4xl px-2 text-red-500 opacity-50 hover:opacity-75 transition-opacity" title="Cancel Pending Request" onClick={()=>{removeFriend(x)}}>⨯</button>
                                     </User>
@@ -184,7 +176,7 @@ const Friends: NextPageWithLayout = () => {
                                 :
                                 (friends.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Friends :(</div> 
-                                : friends.map((x, i) => 
+                                : friends.sort((a, b) => a.username.localeCompare(b.username)).map((x, i) => 
                                     <User {...x} key={i}>
                                         <button className="text-4xl px-2 text-red-500 opacity-50 hover:opacity-75 transition-opacity" title="Remove Friend" onClick={()=>{setPendingRemoval(x)}}>⨯</button>
                                     </User>

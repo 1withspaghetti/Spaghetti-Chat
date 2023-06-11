@@ -9,6 +9,7 @@ import { verifyResourceJWT } from "@/utils/jwt";
 import { UserIdValidatorNumber, UserIdValidatorString } from "@/utils/validation/userValidation";
 import { HttpStatusCode } from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
+import { getChannels } from "./channels";
 
 async function GET(req: NextApiRequest, res: NextApiResponse) {
     const id = verifyResourceJWT(req.headers.authorization);
@@ -28,7 +29,7 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     // Check if the user is trying to send a friend request to themselves
     if (id == to) {
         // Remove the friend request from the user's outgoing friend requests
-        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {pull: [to]}});
+        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id: to}}});
         throw new ApiError("You can't send a friend request to yourself", HttpStatusCode.BadRequest);
     }
 
@@ -37,7 +38,7 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     var already = await User.count({_id: id, friends: to});
     if (already > 0) {
         // Remove the friend request from the user's outgoing friend requests
-        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {pull: [to]}});
+        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id: to}}});
         throw new ApiError("You are already friends with that person", HttpStatusCode.BadRequest);
     }
 
@@ -48,17 +49,27 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     var existing = await FriendRequest.findOne({$or:[{to, from: id}, {to: id, from: to}]});
     if (existing && existing.to == id) {
         // If the friend request already exists, accept it
-        await User.updateOne({_id: id}, {$addToSet: {friends: existing.from}});
-        await User.updateOne({_id: existing.from}, {$addToSet: {friends: id}});
-        await FriendRequest.deleteOne({_id: existing._id});
+        await Promise.all([
+            User.updateOne({_id: id}, {$addToSet: {friends: existing.from}}),
+            User.updateOne({_id: existing.from}, {$addToSet: {friends: id}}),
+            FriendRequest.deleteOne({_id: existing._id})
+        ]);
 
         // Update on sender client
-        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", incoming: {pull: [to]}, outgoing: {pull: [to]}, friends: {push: [friend.toJSON()]}});
+        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", incoming: {action: 'delete', data: {id: to}}, outgoing: {action: 'delete', data: {id: to}}, friends: {action: 'add', data: [friend.toJSON()]}});
         // Update on receiver client
         const user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true});
-        res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {pull: [id]}, outgoing: {pull: [id]}, friends: {push: [user?.toJSON()]}});
+        res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {action: 'delete', data: {id: id}}, outgoing: {action: 'delete', data: {id: id}}, friends: {action: 'add', data: [user?.toJSON()]}});
         
-        if (await Channel.count({dm: true, members: [id, to]}) == 0) await new Channel({_id: generateRandomId(), dm: true, members: [id, to]}).save();
+        // Create a DM channel if it doesn't exist
+        if (await Channel.count({dm: true, $or:[{members: [id, to]}, {members: [to, id]}]}) == 0) {
+            var dm = new Channel({_id: generateRandomId(), dm: true, members: [id, to]});
+            await dm.save();
+            await Promise.all([
+                getChannels({_id: dm._id}, id).then(d=>res.socket.server.io.to(`u${id}`).emit("update", {type: "channels", action: "add", data: transformId(d[0])})),
+                getChannels({_id: dm._id}, to).then(d=>res.socket.server.io.to(`u${to}`).emit("update", {type: "channels", action: "add", data: transformId(d[0])}))
+            ]);
+        }
 
         res.status(200).json({success: true});
         return;
@@ -74,10 +85,10 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
 
     await new FriendRequest({to, from: id}).save();
     // Update on sender client
-    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {push: [friend.toJSON()]}});
+    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'add', data: [friend.toJSON()]}});
     // Update on receiver client
     const user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true});
-    res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {push: [user?.toJSON()]}});
+    res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {action: 'add', data: [user?.toJSON()]}});
 
     res.status(200).json({success: true});
 }
@@ -93,9 +104,9 @@ async function DELETE(req: NextApiRequest, res: NextApiResponseWithSocket) {
     await User.updateOne({_id: id}, {$pull: {friends: user}});
     await User.updateOne({_id: user}, {$pull: {friends: id}});
     // Update on sender client
-    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {pull: [user]}, incoming: {pull: [user]}, friends: {pull: [user]}});
+    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id: user}}, incoming: {action: 'delete', data: {id: user}}, friends: {action: 'delete', data: {id: user}}});
     // Update on receiver client
-    res.socket.server.io.to(`u${user}`).emit("update", {type: "friends", outgoing: {pull: [id]}, incoming: {pull: [id]}, friends: {pull: [id]}});
+    res.socket.server.io.to(`u${user}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id}}, incoming: {action: 'delete', data: {id}}, friends: {action: 'delete', data: {id}}});
 
     res.status(200).json({success: true});
 }
