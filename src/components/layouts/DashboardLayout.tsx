@@ -28,6 +28,9 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
         axios.get('/api/user', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setSelfData(res.data);
         })
+        axios.get("/api/user/channels", {headers: {Authorization: authContext.resourceToken}}).then(res=>{
+            setChannelData(res.data);
+        })
 
         axios.get('/api/ws').then(res=>{
             if (socket) return;
@@ -85,18 +88,23 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                             <div className={`flex justify-center ${open ? '' : ''}`}>
                                 <Link href="/friends" className={`text-sm font-semibold text-center bg-black bg-opacity-0 dark:bg-opacity-10 shadow ${open ? 'w-fit rounded px-4 py-1 my-2' : 'w-full py-3'} hover:bg-opacity-10 hover:dark:bg-opacity-20 transition-all`}>Friends</Link>
                             </div>
-                            { true ?
+                            { !channelData ?
                                 <>
                                     {[12, 16, 9, 10, 15, 9, 12, /*15, 17, 10, 8*/].map((x, i) =>
-                                            <div className={`flex items-center gap-2 py-1 ${open ? `px-4` : `px-2`} transition-all`} key={i}>
-                                                <div className="skeleton-pfp"></div>
-                                                <SkeletonText className={`text-lg font-bold ${open ? 'opacity-100' : 'opacity-0'} transition-opacity`} width={x*10}></SkeletonText>
-                                            </div>
+                                        <div className={`flex items-center gap-2 py-1 ${open ? `px-4` : `px-2`} transition-all`} key={i}>
+                                            <div className="skeleton-pfp"></div>
+                                            <SkeletonText className={`text-lg font-bold ${open ? 'opacity-100' : 'opacity-0'} transition-opacity`} width={x*10}></SkeletonText>
+                                        </div>
                                     )}
                                 </>
                             :
                                 <>
-
+                                    {(channelData.channels as any[]).map((x, i) =>
+                                        <Link href={`/channel/${x.id}`} className={`flex items-center gap-2 py-1 bg-black bg-opacity-0 hover:bg-opacity-10 ${open ? `px-4` : `px-2`} transition-all`} key={x.id}>
+                                            <div className="skeleton-pfp"></div>
+                                            <div className={`text-lg font-bold overflow-hidden whitespace-nowrap text-ellipsis ${open ? 'opacity-100' : 'opacity-0'} transition-opacity`}>{x.name || (x.members as any[]).map(x=>x.username).sort().join(', ')}</div>
+                                        </Link>
+                                    )}
                                 </>
                             }
                         </div>

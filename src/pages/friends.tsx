@@ -121,7 +121,7 @@ const Friends: NextPageWithLayout = () => {
 
     return (
         <>
-            <div className="w-full flex flex-col px-4 items-center mt-4 mb-4 pr-6" onClick={()=>{ axios.get("/api/user/channels", {headers: {Authorization: authContext.resourceToken}})}}>
+            <div className="w-full flex flex-col px-4 items-center mt-4 mb-4 pr-6">
                 <div className="w-full max-w-lg px-4 py-1 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Add Friends</div>
                 <div className="relative w-full max-w-sm">
                     <FormInput ref={searchElement} id="search" label="" attr={{placeholder: "Search Users", onChange: updateSearchDebounce, autoComplete: 'off', onKeyDown: searchNavigation}} width={384}></FormInput>
