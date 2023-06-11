@@ -17,16 +17,16 @@ const Friends: NextPageWithLayout = () => {
     var socket = useContext(SocketContext);
     const router = useRouter();
 
-    const [friendData, setFriendData] = useState<boolean>(false);
+    const [friendsLoaded, setFriendsLoaded] = useState<boolean>(false);
 
     const [incoming, dispatchIncoming] = useReducer(globalReducer, []);
     const [outgoing, dispatchOutgoing] = useReducer(globalReducer, []);
     const [friends, dispatchFriends] = useReducer(globalReducer, []);
     useEffect(()=>{
-        if (authContext.awaitAuth || !authContext.loggedIn || friendData) return;
+        if (authContext.awaitAuth || !authContext.loggedIn || friendsLoaded) return;
 
         axios.get('/api/user/friends', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
-            setFriendData(true);
+            setFriendsLoaded(true);
             dispatchIncoming({action: 'set', data: res.data.incoming});
             dispatchOutgoing({action: 'set', data: res.data.outgoing});
             dispatchFriends({action: 'set', data: res.data.friends});
@@ -36,14 +36,12 @@ const Friends: NextPageWithLayout = () => {
     // Handle updates sent from server via WebSocket
     useEffect(()=>{
         if (!socket) return;
-        socket.on('update', onUpdate);
+        socket.on('friendUpdate', onUpdate);
         return ()=>{
-            socket?.off('update', onUpdate);
+            socket?.off('friendUpdate', onUpdate);
         }
     }, [socket]);
     function onUpdate(data: any) {
-        if (data.type != "friends") return;
-
         if (data.incoming) dispatchIncoming(data.incoming);
         if (data.outgoing) dispatchOutgoing(data.outgoing);
         if (data.friends) dispatchFriends(data.friends);
@@ -132,7 +130,7 @@ const Friends: NextPageWithLayout = () => {
                     <div className="md:flex-1 relative md:h-full md:overflow-y-auto">
                         <div className="sticky flex z-10 top-0 left-0 right-0 mr-2 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Incoming Friend Requests</div>
                         <div className="flex flex-col w-full mt-2">
-                            {!friendData ? 
+                            {!friendsLoaded ? 
                                 <div className="italic font-bold text-center opacity-50">Loading...</div> 
                                 :
                                 (incoming.length == 0 ? 
@@ -149,7 +147,7 @@ const Friends: NextPageWithLayout = () => {
                     <div className="md:flex-1 relative md:h-full md:overflow-y-auto">
                         <div className="sticky flex z-10 top-0 left-0 right-0 mr-2 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Outgoing Friend Requests</div>
                         <div className="flex flex-col w-full mt-2">
-                            {!friendData ? 
+                            {!friendsLoaded ? 
                                 <div className="italic font-bold text-center opacity-50">Loading...</div> 
                                 :
                                 (outgoing.length == 0 ? 
@@ -166,7 +164,7 @@ const Friends: NextPageWithLayout = () => {
                 <div className="md:flex-1 relative md:h-full md:overflow-y-auto">
                     <div className="sticky flex z-10 top-0 left-0 right-0 mr-2 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">All Friends</div>
                     <div className="flex flex-col w-full mt-2">
-                        {!friendData ? 
+                        {!friendsLoaded ? 
                                 [10, 17, 9, 12, 8, 15, 11, 13, 14, 17].map((x, i) =>
                                     <div className="flex items-center gap-2 py-1 w-full" key={i}>
                                         <SkeletonProfile/>

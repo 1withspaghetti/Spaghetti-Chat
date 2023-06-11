@@ -17,10 +17,9 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
     const [socket, setSocket] = useState<Socket>();
 
     const [selfData, setSelfData] = useState<any>();
-    //const [channelData, setChannelData] = useState<any>();
 
-    const [channels, dispatchChannels] = useReducer(globalReducer, []);
     const [channelsLoaded, setChannelsLoaded] = useState<boolean>(false);
+    const [channels, dispatchChannelUpdate] = useReducer(globalReducer, []);
 
     useEffect(()=>{
         if (!authContext.awaitAuth && !authContext.loggedIn) router.push('/login?url='+router.route);
@@ -33,7 +32,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
             setSelfData(res.data);
         })
         axios.get("/api/user/channels", {headers: {Authorization: authContext.resourceToken}}).then(res=>{
-            dispatchChannels({action: 'set', data: res.data.channels});
+            dispatchChannelUpdate({action: 'set', data: res.data.channels});
             setChannelsLoaded(true);
         })
 
@@ -42,9 +41,6 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
             const newSocket = io({auth: {token: authContext.resourceToken}});
             newSocket.on('connect', ()=>{
                 console.log('WebSocket connected');
-            });
-            newSocket.on('message', (data)=>{
-                console.log(`Received message: ${data}`);
             });
             setSocket(newSocket);
         });
@@ -58,18 +54,11 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
     // Channel updates
     useEffect(()=>{
         if (!socket) return;
-        socket.on('update', channelUpdate);
+        socket.on('channelUpdate', dispatchChannelUpdate);
         return ()=>{
-            socket?.off('update', channelUpdate);
+            socket?.off('channelUpdate', dispatchChannelUpdate);
         }
     }, [socket]);
-    function channelUpdate(data: any){
-        if (data.type !== 'channels') return;
-
-        console.log(data);
-
-        dispatchChannels(data);
-    }
 
 
     const [open, setOpen] = useState<boolean>(true);

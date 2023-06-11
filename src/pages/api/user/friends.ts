@@ -27,20 +27,12 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     const acceptOnly = req.query.acceptOnly == "true";
 
     // Check if the user is trying to send a friend request to themselves
-    if (id == to) {
-        // Remove the friend request from the user's outgoing friend requests
-        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id: to}}});
-        throw new ApiError("You can't send a friend request to yourself", HttpStatusCode.BadRequest);
-    }
+    if (id == to) throw new ApiError("You can't send a friend request to yourself", HttpStatusCode.BadRequest);
 
     await mongodb();
     // Check if the user is already friends with the other user
     var already = await User.count({_id: id, friends: to});
-    if (already > 0) {
-        // Remove the friend request from the user's outgoing friend requests
-        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id: to}}});
-        throw new ApiError("You are already friends with that person", HttpStatusCode.BadRequest);
-    }
+    if (already > 0) throw new ApiError("You are already friends with that person", HttpStatusCode.BadRequest);
 
     const friend = await User.findOne({_id: to}, {_id: true, username: true, avatar: true, color: true});
     if (!friend) throw new ApiError("That user doesn't exist", HttpStatusCode.BadRequest);
@@ -56,18 +48,18 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
         ]);
 
         // Update on sender client
-        res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", incoming: {action: 'delete', data: {id: to}}, outgoing: {action: 'delete', data: {id: to}}, friends: {action: 'add', data: [friend.toJSON()]}});
+        res.socket.server.io.to(`u${id}`).emit("friendUpdate", {incoming: {action: 'delete', data: {id: to}}, outgoing: {action: 'delete', data: {id: to}}, friends: {action: 'add', data: [friend.toJSON()]}});
         // Update on receiver client
         const user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true});
-        res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {action: 'delete', data: {id: id}}, outgoing: {action: 'delete', data: {id: id}}, friends: {action: 'add', data: [user?.toJSON()]}});
+        res.socket.server.io.to(`u${to}`).emit("friendUpdate", {incoming: {action: 'delete', data: {id: id}}, outgoing: {action: 'delete', data: {id: id}}, friends: {action: 'add', data: [user?.toJSON()]}});
         
         // Create a DM channel if it doesn't exist
         if (await Channel.count({dm: true, $or:[{members: [id, to]}, {members: [to, id]}]}) == 0) {
             var dm = new Channel({_id: generateRandomId(), dm: true, members: [id, to]});
             await dm.save();
             await Promise.all([
-                getChannels({_id: dm._id}, id).then(d=>res.socket.server.io.to(`u${id}`).emit("update", {type: "channels", action: "add", data: transformId(d[0])})),
-                getChannels({_id: dm._id}, to).then(d=>res.socket.server.io.to(`u${to}`).emit("update", {type: "channels", action: "add", data: transformId(d[0])}))
+                getChannels({_id: dm._id}, id).then(d=>res.socket.server.io.to(`u${id}`).emit("channelUpdate", {action: "add", data: transformId(d[0])})),
+                getChannels({_id: dm._id}, to).then(d=>res.socket.server.io.to(`u${to}`).emit("channelUpdate", {action: "add", data: transformId(d[0])}))
             ]);
         }
 
@@ -85,10 +77,10 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
 
     await new FriendRequest({to, from: id}).save();
     // Update on sender client
-    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'add', data: [friend.toJSON()]}});
+    res.socket.server.io.to(`u${id}`).emit("friendUpdate", {outgoing: {action: 'add', data: [friend.toJSON()]}});
     // Update on receiver client
     const user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true});
-    res.socket.server.io.to(`u${to}`).emit("update", {type: "friends", incoming: {action: 'add', data: [user?.toJSON()]}});
+    res.socket.server.io.to(`u${to}`).emit("friendUpdate", {incoming: {action: 'add', data: [user?.toJSON()]}});
 
     res.status(200).json({success: true});
 }
@@ -104,9 +96,9 @@ async function DELETE(req: NextApiRequest, res: NextApiResponseWithSocket) {
     await User.updateOne({_id: id}, {$pull: {friends: user}});
     await User.updateOne({_id: user}, {$pull: {friends: id}});
     // Update on sender client
-    res.socket.server.io.to(`u${id}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id: user}}, incoming: {action: 'delete', data: {id: user}}, friends: {action: 'delete', data: {id: user}}});
+    res.socket.server.io.to(`u${id}`).emit("friendUpdate", {outgoing: {action: 'delete', data: {id: user}}, incoming: {action: 'delete', data: {id: user}}, friends: {action: 'delete', data: {id: user}}});
     // Update on receiver client
-    res.socket.server.io.to(`u${user}`).emit("update", {type: "friends", outgoing: {action: 'delete', data: {id}}, incoming: {action: 'delete', data: {id}}, friends: {action: 'delete', data: {id}}});
+    res.socket.server.io.to(`u${user}`).emit("friendUpdate", {outgoing: {action: 'delete', data: {id}}, incoming: {action: 'delete', data: {id}}, friends: {action: 'delete', data: {id}}});
 
     res.status(200).json({success: true});
 }

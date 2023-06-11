@@ -1,6 +1,6 @@
 import { apiHandler } from "@/utils/api";
 import { transformId } from "@/utils/db/dbUtil";
-import Channel, { IChannel } from "@/utils/db/models/Channel";
+import Channel from "@/utils/db/models/Channel";
 import mongodb from "@/utils/db/mongodb";
 import { verifyResourceJWT } from "@/utils/jwt";
 import { NextApiRequest, NextApiResponse } from "next";

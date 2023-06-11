@@ -21,7 +21,6 @@ async function GET(req: NextApiRequest, res: NextApiResponseWithSocket) {
                     var id = verifyResourceJWT(token);
                     socket.data.id = id;
                     socket.join(`u${id}`)
-                    console.log(`socket.io is authenticating with user ${socket.data.id}`);
                     next();
                 } catch (err) {
                     return next(new ApiError("Authentication error"));
@@ -30,11 +29,10 @@ async function GET(req: NextApiRequest, res: NextApiResponseWithSocket) {
         });
         io.on("connection", (socket) => {
             console.log(`socket.io is connected with user ${socket.data.id}`);
-            socket.emit("message", "Hello from server");
         });
         res.socket.server.io = io;
     }
     res.status(200).json({success: true});
 }
 
-export default apiHandler({GET: GET as NextApiHandler});
+export default apiHandler({GET});
