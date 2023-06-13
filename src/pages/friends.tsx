@@ -9,7 +9,7 @@ import SkeletonProfile from "@/components/loader/SkeletonProfile";
 import { NextPageWithLayout } from "./_app";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { SocketContext } from "@/context/SocketContext";
-import { globalReducer } from "@/utils/reducer";
+import { globalArrayReducer } from "@/utils/reducer";
 
 const Friends: NextPageWithLayout = () => {
     
@@ -19,9 +19,9 @@ const Friends: NextPageWithLayout = () => {
 
     const [friendsLoaded, setFriendsLoaded] = useState<boolean>(false);
 
-    const [incoming, dispatchIncoming] = useReducer(globalReducer, []);
-    const [outgoing, dispatchOutgoing] = useReducer(globalReducer, []);
-    const [friends, dispatchFriends] = useReducer(globalReducer, []);
+    const [incoming, dispatchIncoming] = useReducer(globalArrayReducer, []);
+    const [outgoing, dispatchOutgoing] = useReducer(globalArrayReducer, []);
+    const [friends, dispatchFriends] = useReducer(globalArrayReducer, []);
     useEffect(()=>{
         if (authContext.awaitAuth || !authContext.loggedIn || friendsLoaded) return;
 
@@ -37,14 +37,21 @@ const Friends: NextPageWithLayout = () => {
     useEffect(()=>{
         if (!socket) return;
         socket.on('friendUpdate', onUpdate);
+        socket.on('userUpdate', onUserUpdate);
         return ()=>{
             socket?.off('friendUpdate', onUpdate);
+            socket?.off('userUpdate', onUserUpdate);
         }
     }, [socket]);
     function onUpdate(data: any) {
         if (data.incoming) dispatchIncoming(data.incoming);
         if (data.outgoing) dispatchOutgoing(data.outgoing);
         if (data.friends) dispatchFriends(data.friends);
+    }
+    function onUserUpdate(data: any) {
+        dispatchIncoming(data);
+        dispatchOutgoing(data);
+        dispatchFriends(data);
     }
 
     const searchElement = useRef<FormInput>(null);

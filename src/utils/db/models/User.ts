@@ -19,7 +19,7 @@ const userSchema = new Schema<IUser>({
     _id: Number,
     email: String,
     username: String,
-    avatar: String,
+    avatar: Number,
     color: Number,
     meta: Number,
     salt: Buffer,

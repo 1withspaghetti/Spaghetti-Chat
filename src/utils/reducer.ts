@@ -1,6 +1,6 @@
 type Data = Record<string, string> & {id: number};
 
-export function globalReducer(array: {id: number}[], payload: {action: 'set'|'add'|'edit'|'delete', data: Data|Data[]}) {
+export function globalArrayReducer(array: {id: number}[], payload: {action: 'set'|'add'|'edit'|'delete'|'editMember', data: Data|Data[]}) {
     switch (payload.action) {
         case 'add':
             if (payload.data instanceof Array) {
@@ -23,7 +23,32 @@ export function globalReducer(array: {id: number}[], payload: {action: 'set'|'ad
             }
         case 'set':
             return payload.data instanceof Array ? payload.data : [payload.data];
+
+        case 'editMember':
+            if (payload.data instanceof Array) {
+                let toEdit = payload.data.map(item => item.id);
+                return array.map((channel: any) => (
+                    {...channel, members: (channel.members as any[] || []).map(member => 
+                        toEdit.includes(member.id) ? (payload.data as any[]).find(i => i.id === member.id) : member)
+                    }
+                ));
+            } else {
+                return array.map((channel: any) => {
+                    return {...channel, members: (channel.members as any[] || []).map(member => ((payload.data as Data).id === member.id) ? payload.data : member)}
+                })
+            }
         default:
             return array;
+    }
+}
+
+export function globalObjectReducer(object: Record<string, any>, payload: {action: 'set'|'edit', data: any}) {
+    switch (payload.action) {
+        case 'edit':
+            return payload.data;
+        case 'set':
+            return payload.data;
+        default:
+            return payload.data;
     }
 }

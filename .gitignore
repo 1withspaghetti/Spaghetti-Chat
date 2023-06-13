@@ -1,6 +1,8 @@
 *.key
 *.key.pub
 *.db
+avatars/
+media/
 
 # dependencies
 /node_modules
