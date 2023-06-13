@@ -5,10 +5,12 @@ import { NextPageWithLayout } from "./_app";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import axios from "axios";
 import Image from "next/image";
+import { UserContext } from "@/context/UserContext";
 
 const Home: NextPageWithLayout = () => {
 
     var authContext = useContext(AuthContext);
+    var userContext = useContext(UserContext);
     const router = useRouter();
 
     const [settings, setSettings] = useState<any>();

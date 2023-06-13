@@ -42,13 +42,14 @@ export function globalArrayReducer(array: {id: number}[], payload: {action: 'set
     }
 }
 
-export function globalObjectReducer(object: Record<string, any>, payload: {action: 'set'|'edit', data: any}) {
+export function globalObjectReducer(object: Record<string, any>, payload: {action: 'set'|'edit', data: any}): Record<string, any> {
     switch (payload.action) {
-        case 'edit':
-            return payload.data;
         case 'set':
             return payload.data;
+        case 'edit':
+            if (payload.data.id !== object.id) return object;
+            return {...object, ...payload.data};
         default:
-            return payload.data;
+            return object;
     }
 }

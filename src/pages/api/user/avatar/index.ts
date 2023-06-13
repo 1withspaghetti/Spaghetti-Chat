@@ -46,6 +46,14 @@ fs.mkdirSync(AVATAR_UPLOAD_DIR, {recursive: true});
 async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     const id = verifyResourceJWT(req.headers.authorization);
 
+    var user = await User.findOne({_id: id}, {_id: true, avatar: true, avatarNext: true});
+    if (!user) throw new ApiError("User not found", HttpStatusCode.NotFound);
+
+    // If over 4 avatar changes in the last 40 minutes (regenerates at 1 change every 10 minutes)
+    if (Date.now() < (user.avatarNext||new Date()).getTime() - (600000 * 4)) throw new ApiError("You have updated your avatar too many times recently, please slow down", HttpStatusCode.BadRequest);
+    user.avatarNext = new Date(Math.max((user.avatarNext||new Date()).getTime(), Date.now()) + 600000);
+    await user.save();
+
     const form = formidable(options);
 
     form.on('progress', (bytesReceived, bytesExpected)=>{
@@ -81,7 +89,7 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
         throw new ApiError("Only one file allowed", HttpStatusCode.BadRequest);
     }
 
-    var user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true, meta: true});
+    user = await User.findOne({_id: id}, {_id: true, username: true, avatar: true, color: true, meta: true});
     if (!user) throw new ApiError("Unknown user", HttpStatusCode.NotFound);
 
     
@@ -94,6 +102,7 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     await user.save();
 
     res.socket.server.io.emit('userUpdate', {action: 'edit', data: user.toJSON()}); // Note: All users will receive this update
+    res.socket.server.io.to(`u${id}`).emit('selfUserUpdate', {action: 'set', data: user.toJSON()}); // Note: Only the user will receive this update
 
     res.status(200).json({success: true, avatar: user.avatar});
 }

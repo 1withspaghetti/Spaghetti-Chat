@@ -7,6 +7,7 @@ import io, { Socket } from 'socket.io-client';
 import Link from "next/link";
 import { SocketContext } from "@/context/SocketContext";
 import { globalArrayReducer, globalObjectReducer } from "@/utils/reducer";
+import { User, UserContext } from "@/context/UserContext";
 
 export default function DashboardLayout(props: {children: React.ReactNode}) {
 
@@ -14,9 +15,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
     const router = useRouter();
 
     const [socket, setSocket] = useState<Socket>();
-
-    const [selfLoaded, setSelfLoaded] = useState<boolean>(false);
-    const [self, dispatchSelfUpdate] = useReducer(globalObjectReducer, {});
+    const [user, setUser] = useState<User>();
 
     const [channelsLoaded, setChannelsLoaded] = useState<boolean>(false);
     const [channels, dispatchChannelUpdate] = useReducer(globalArrayReducer, []);
@@ -26,11 +25,10 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
     }, [authContext]);
 
     useEffect(()=>{
-        if (authContext.awaitAuth || !authContext.loggedIn || selfLoaded) return;
+        if (authContext.awaitAuth || !authContext.loggedIn || user) return;
 
         axios.get('/api/user', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
-            dispatchSelfUpdate({action: 'set', data: res.data});
-            setSelfLoaded(true);
+            setUser(res.data);
         })
         axios.get("/api/user/channels", {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             dispatchChannelUpdate({action: 'set', data: res.data.channels});
@@ -53,47 +51,46 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
 
 
     // Channel updates
+    function userUpdate(data: any) {
+        dispatchChannelUpdate({action: 'editMember', data: data.data});
+    }
+    function selfUserUpdate(data: any) {
+        setUser(data.data);
+    }
     useEffect(()=>{
         if (!socket) return;
         socket.on('channelUpdate', dispatchChannelUpdate);
         socket.on('userUpdate', userUpdate);
+        socket.on('selfUserUpdate', selfUserUpdate);
         return ()=>{
             socket?.off('channelUpdate', dispatchChannelUpdate);
             socket?.off('userUpdate', userUpdate);
+            socket?.off('selfUserUpdate', selfUserUpdate);
         }
     }, [socket]);
-    function userUpdate(data: any) {
-        dispatchChannelUpdate({action: 'editMember', data: data.data});
-        if (data.data.id !== self.id) return;
-        dispatchSelfUpdate(data);
-    }
 
 
     const [open, setOpen] = useState<boolean>(true);
 
-    const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
-    useEffect(()=>{
-        //setSettingsOpen(false);
-    }, [open]);
-
     return (
+        <UserContext.Provider value={user}>
         <SocketContext.Provider value={socket}>
-        <div className="fixed top-0 right-0 left-0 bottom-0 gradient bg-opacity-50 flex" onClick={()=>setSettingsOpen(false)}>
+        <div className="fixed top-0 right-0 left-0 bottom-0 gradient bg-opacity-50 flex">
             <div className={`flex flex-col flex-shrink-0 items-stretch w-full gradient bg-opacity-80 rounded-r-lg sm:rounded-r-2xl shadow-xl ${open ? 'max-w-screen-sm sm:max-w-[20rem]' : 'max-w-[64px]'} transition-all`}
                 onClick={()=>{if(!open) setOpen(true)}}>
                 <div className={`h-16 flex items-center ${open ? 'px-4' : 'px-2'} py-2 bg-black bg-opacity-5 dark:bg-opacity-25 shadow-lg transition-all`}>
                     <div className="w-12 h-12 flex-shrink-0 mr-4 rounded-full overflow-hidden shadow-lg">
-                        { selfLoaded ?
-                            <img src={`/api/avatar/${self.avatar}?size=48`} alt="Profile Picture" width={48} height={48} className="pfp"></img>
+                        { user ?
+                            <img src={`/api/avatar/${user.avatar}?size=48`} alt="Profile Picture" width={48} height={48} className="pfp"></img>
                         :
                             <div className="skeleton-pfp"></div>
                         }
                     </div>
                     <div className={`w-full mr-auto whitespace-nowrap ${open ? 'opacity-100' : 'opacity-0'} transition-opacity`}>
-                        { selfLoaded ?
+                        { user ?
                             <>
-                                <div className="text-lg font-bold -mb-[2px]">{self.username}</div>
-                                <div className="text-sm opacity-25">Id: {self.id}</div>
+                                <div className="text-lg font-bold -mb-[2px]">{user.username}</div>
+                                <div className="text-sm opacity-25">Id: {user.id}</div>
                             </>
                         :
                             <>
@@ -102,7 +99,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                             </>
                         }
                     </div>
-                    <Link href="/settings" className={`px-1 ${open ? 'opacity-50' : 'opacity-0'} group cursor-pointer`} onClick={(e)=>{setSettingsOpen(!settingsOpen);e.stopPropagation()}}>
+                    <Link href="/settings" className={`px-1 ${open ? 'opacity-50' : 'opacity-0'} group cursor-pointer`}>
                         <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 96 960 960" className="group-hover:opacity-75 transition-opacity"><path d="m388 976-20-126q-19-7-40-19t-37-25l-118 54-93-164 108-79q-2-9-2.5-20.5T185 576q0-9 .5-20.5T188 535L80 456l93-164 118 54q16-13 37-25t40-18l20-127h184l20 126q19 7 40.5 18.5T669 346l118-54 93 164-108 77q2 10 2.5 21.5t.5 21.5q0 10-.5 21t-2.5 21l108 78-93 164-118-54q-16 13-36.5 25.5T592 850l-20 126H388Zm92-270q54 0 92-38t38-92q0-54-38-92t-92-38q-54 0-92 38t-38 92q0 54 38 92t92 38Z"/></svg>
                     </Link>
                 </div>
@@ -142,5 +139,6 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
             </div>
         </div>
         </SocketContext.Provider>
+        </UserContext.Provider>
     )
 }
