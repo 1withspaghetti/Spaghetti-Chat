@@ -82,3 +82,16 @@ input:-webkit-autofill:focus {
 ::-webkit-scrollbar-track {
     @apply bg-black bg-opacity-50 rounded-lg;
 }
+
+.notification {
+    animation: notification 250ms ease-out;
+}
+
+@keyframes notification {
+    0% {
+        transform: translateX(100%);
+    }
+    100% {
+        transform: translateX(0%);
+    }
+}

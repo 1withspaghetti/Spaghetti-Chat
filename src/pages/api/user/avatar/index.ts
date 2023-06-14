@@ -22,7 +22,7 @@ const options: Partial<formidable.Options> = {
     keepExtensions: true, 
     uploadDir: AVATAR_UPLOAD_DIR,
     filter: (part)=>{
-        return !!part.mimetype?.startsWith('image') && part.name==='avatar';
+        return !!part.mimetype?.match(/^image\/(png|jpg|jpeg|webp|gif)$/) && part.name==='avatar';
     },
     filename: (name, ext, part, form)=>{
         return generateRandomId() + '.webp';
@@ -50,7 +50,7 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
     if (!user) throw new ApiError("User not found", HttpStatusCode.NotFound);
 
     // If over 4 avatar changes in the last 40 minutes (regenerates at 1 change every 10 minutes)
-    if (Date.now() < (user.avatarNext||new Date()).getTime() - (600000 * 4)) throw new ApiError("You have updated your avatar too many times recently, please slow down", HttpStatusCode.BadRequest);
+    if (Date.now() < (user.avatarNext||new Date()).getTime() - (600000 * 4)) throw new ApiError("You have updated your avatar too many times recently, please slow down!", HttpStatusCode.BadRequest);
     user.avatarNext = new Date(Math.max((user.avatarNext||new Date()).getTime(), Date.now()) + 600000);
     await user.save();
 

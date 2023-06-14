@@ -1,28 +1,28 @@
 import FormInput from "@/components/FormInput";
 import { AuthContext } from "@/context/AuthContext";
 import { LoginValidator } from "@/utils/validation/authValidation";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { FormEvent, useContext, useRef, useState } from "react";
 import { NextPageWithLayout } from "./_app";
 import LoginLayout from "@/components/layouts/LoginLayout";
+import { NotificationContext } from "@/context/NotificationContext";
 
 const Login: NextPageWithLayout = () => {
 
     const authContext = useContext(AuthContext);
     const router = useRouter();
+    const notify = useContext(NotificationContext);
 
     const user = useRef<FormInput>(null);
     const pass = useRef<FormInput>(null);
 
-    var [error, setError] = useState<string>("");
     var [loading, setLoading] = useState<boolean>(false);
 
     function onSubmit(e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (loading) return;
-        setError("");
 
         if (!user.current?.testInput() || !pass.current?.testInput()) return;
 
@@ -31,9 +31,7 @@ const Login: NextPageWithLayout = () => {
         .then((res)=>{
             authContext.updateAuth(res.data["refresh_token"], res.data["resource_token"]);
             router.push(typeof router.query.url === 'string' ? router.query.url : '/');
-        }).catch((err: AxiosError<any, any>)=>{
-            setError(err.response?.data.error || (err.response?.status + " " + err.response?.statusText))
-        }).finally(()=>{setLoading(false)});
+        }).catch(notify).finally(()=>{setLoading(false)});
     }
     
     return (
@@ -49,9 +47,6 @@ const Login: NextPageWithLayout = () => {
                 </FormInput>
                 <div className="text-center mt-4">
                     <input type="submit" value={"Continue"} className="w-min rounded-lg shadow font-semibold mx-1 px-4 py-[2px] cursor-pointer transition-all text-navy-50 bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105"></input>
-                </div>
-                <div className="py-3 text-center text-red-500">
-                    { error }
                 </div>
             </form>
             <div className="text-center font-semibold">Don&apos;t have an account? <Link href="/sign-up" className="text-blue-500">Sign Up!</Link></div>

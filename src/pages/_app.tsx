@@ -6,6 +6,8 @@ import type { AppProps } from 'next/app'
 import { Poppins } from 'next/font/google'
 import Head from 'next/head'
 import { ReactElement, ReactNode, useEffect, useState } from 'react'
+import Notification from '@/components/Notification'
+import { NotificationContext } from '@/context/NotificationContext'
 
 const poppins = Poppins({weight: ["400","600","700"], subsets: ["latin-ext"]})
 
@@ -17,6 +19,8 @@ export default function App({ Component, pageProps }: AppProps & {Component: Nex
     const [loggedIn, setLoggedIn] = useState<boolean>(false);
     const [resourceToken, setResourceToken] = useState<string>();
     const [awaitAuth, setAwaitAuth] = useState<boolean>(true);
+
+    const [notifications, setNotifications] = useState<any[]>([]);
 
     function updateTokens() {
         return new Promise<void>((res)=>{
@@ -74,6 +78,7 @@ export default function App({ Component, pageProps }: AppProps & {Component: Nex
         try {
             await axios.get("/api/auth/logout", {headers: {"Authorization": refreshToken}});
         } catch (err) {
+            notify(err);
             if (!(err instanceof AxiosError) || err.response?.status != 401) throw err;
         }
         setLoggedIn(false);
@@ -82,8 +87,38 @@ export default function App({ Component, pageProps }: AppProps & {Component: Nex
         localStorage.removeItem("session_token");
     }
 
+    function notify(titleOrError: string|any, message?: string, isError?: boolean) {
+        var title: string;
+        if (typeof titleOrError !== 'string') {
+            if (titleOrError instanceof AxiosError) {
+                if (titleOrError.response?.data) {
+                    title = "Error";
+                    message = titleOrError.response.data.error;
+                    isError = true;
+                } else if (titleOrError.response) {
+                    title = `Error ${titleOrError.response.status}: ${titleOrError.response.statusText}`
+                    message = "Something went wrong, please try again later";
+                    isError = true;
+                } else {
+                    title = "Network Error";
+                    message = "Could not connect to the server";
+                    isError = true;
+                }
+            } else {
+                console.error(titleOrError);
+                title = "Error";
+                message = "Something went wrong, please try again later";
+                isError = true;
+            }
+        } else {
+            title = titleOrError;
+        }
+        setNotifications([...notifications.filter((n,i) => n.expires>Date.now()), {id: Math.random(), title, message, isError, expires: Date.now()+6000}])
+    }
+
     const getLayout = Component.getLayout ?? ((page) => page);
     return (
+        <NotificationContext.Provider value={notify}>
         <AuthContext.Provider value={{loggedIn, resourceToken, awaitAuth, updateAuth: setTokens, logout}}>
             <Head>
                 <title>{ pageProps.title ? `${pageProps.title} | Spaghetti Chat` : `Spaghetti Chat`}</title>
@@ -96,7 +131,11 @@ export default function App({ Component, pageProps }: AppProps & {Component: Nex
                     <Component {...pageProps} />
                 )}
             </div>
+            <div className="fixed top-4 right-4 pl-4 flex flex-col">
+                {notifications.map((notification, i)=>(<Notification {...notification} key={notification.id} shouldRemove={notifications.length > 6 && i < notifications.length - 6}></Notification>))}
+            </div>
         </AuthContext.Provider>
+        </NotificationContext.Provider>
     )
 }
 

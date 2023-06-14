@@ -10,12 +10,14 @@ import { NextPageWithLayout } from "./_app";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { SocketContext } from "@/context/SocketContext";
 import { globalArrayReducer } from "@/utils/reducer";
+import { NotificationContext } from "@/context/NotificationContext";
 
 const Friends: NextPageWithLayout = () => {
     
     var authContext = useContext(AuthContext);
     var socket = useContext(SocketContext);
     const router = useRouter();
+    const notify = useContext(NotificationContext);
 
     const [friendsLoaded, setFriendsLoaded] = useState<boolean>(false);
 
@@ -30,7 +32,7 @@ const Friends: NextPageWithLayout = () => {
             dispatchIncoming({action: 'set', data: res.data.incoming});
             dispatchOutgoing({action: 'set', data: res.data.outgoing});
             dispatchFriends({action: 'set', data: res.data.friends});
-        })
+        }).catch(notify);
     }, [authContext.awaitAuth]);
 
     // Handle updates sent from server via WebSocket
@@ -69,9 +71,7 @@ const Friends: NextPageWithLayout = () => {
         axios.get("/api/user/search", {params: {q}, headers: {Authorization: authContext.resourceToken}}).then(res => {
             setSearchResults(res.data.results);
             setSearchTab(-1);
-        }).catch(() => {
-            console.error("Failed to search users");
-        });
+        }).catch(notify);
     }
     function searchNavigation(event: React.KeyboardEvent<HTMLInputElement>) {
         if (event.key == "ArrowDown" || (event.key == "Tab" && !event.shiftKey)) {
@@ -87,9 +87,8 @@ const Friends: NextPageWithLayout = () => {
     }
 
     function addFriend(user: any) {
-        axios.post("/api/user/friends", {to: user.id}, {headers: {Authorization: authContext.resourceToken}}).catch(()=>{
-            console.error("Failed to add friend");
-        });
+        axios.post("/api/user/friends", {to: user.id}, {headers: {Authorization: authContext.resourceToken}})
+            .catch(notify);
         searchElement.current?.setValue("");
         setSearchResults([]);
         setSearchTab(-1);
@@ -97,9 +96,8 @@ const Friends: NextPageWithLayout = () => {
 
     function acceptFriend(user: any) {
         dispatchIncoming({action: 'delete', data: user});
-        axios.post("/api/user/friends?acceptOnly=true", {to: user.id}, {headers: {Authorization: authContext.resourceToken}}).catch(() => {
-            console.error("Failed to accept friend");
-        });
+        axios.post("/api/user/friends?acceptOnly=true", {to: user.id}, {headers: {Authorization: authContext.resourceToken}})
+            .catch(notify);
     }
 
 
@@ -111,9 +109,8 @@ const Friends: NextPageWithLayout = () => {
         dispatchOutgoing({action: 'delete', data: user});
         dispatchFriends({action: 'delete', data: user});
         setPendingRemoval(undefined);
-        axios.delete(`/api/user/friends?user=${user.id}`, {headers: {Authorization: authContext.resourceToken}}).catch(() => {
-            console.error("Failed to remove friend");
-        });
+        axios.delete(`/api/user/friends?user=${user.id}`, {headers: {Authorization: authContext.resourceToken}})
+            .catch(notify);
     }
 
     return (

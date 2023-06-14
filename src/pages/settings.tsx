@@ -6,11 +6,13 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import axios from "axios";
 import Image from "next/image";
 import { UserContext } from "@/context/UserContext";
+import { NotificationContext } from "@/context/NotificationContext";
 
 const Home: NextPageWithLayout = () => {
 
     var authContext = useContext(AuthContext);
     var userContext = useContext(UserContext);
+    const notify = useContext(NotificationContext);
     const router = useRouter();
 
     const [settings, setSettings] = useState<any>();
@@ -23,25 +25,26 @@ const Home: NextPageWithLayout = () => {
 
         axios.get('/api/user/settings', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setSettings(res.data);
-        })
+        }).catch(notify);
     }, [authContext.awaitAuth])
 
     function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || !e.target.files[0]) return;
         var file = e.target.files[0];
-        if (file.size > 1024 * 1024) {
-            alert("File size must be less than 1MB");
-            return;
-        }
-        if (!file.type.startsWith("image/")) {
-            alert("File must be an image");
+        // if (file.size > 1024 * 1024) {
+        //     notify("Error", "File must be less than 1MB", true);
+        //     return;
+        // }
+        if (!file.type.match(/image\/(png|jpg|jpeg|webp|gif)/)) {
+            notify("Error", "Supported file extensions: PNG, JPG, WEBP, GIF", true);
             return;
         }
         var formData = new FormData();
         formData.append("avatar", file);
         axios.post('/api/user/avatar', formData, {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setSettings({...settings, avatar: res.data.avatar});
-        })
+            notify("", "Your avatar has been updated successfully.");
+        }).catch(notify);
     }
 
     const aboutMeAdjustSize = ()=>{

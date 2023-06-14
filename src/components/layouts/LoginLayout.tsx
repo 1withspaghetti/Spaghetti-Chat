@@ -4,10 +4,12 @@ import Link from "next/link";
 import Image from 'next/image';
 import { AuthContext } from "@/context/AuthContext";
 import axios from "axios";
+import { NotificationContext } from "@/context/NotificationContext";
 
 export default function LoginLayout({children}: {children: React.ReactNode}) {
 
     var authContext = useContext(AuthContext);
+    var notify = useContext(NotificationContext);
 
     const [data, setData] = useState<any>();
     useEffect(()=>{
@@ -15,7 +17,7 @@ export default function LoginLayout({children}: {children: React.ReactNode}) {
 
         axios.get('/api/user', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setData(res.data);
-        })
+        }).catch(notify);
     }, [authContext.awaitAuth]);
     
     return (

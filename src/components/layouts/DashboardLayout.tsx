@@ -6,13 +6,16 @@ import SkeletonText from "@/components/loader/SkeletonText";
 import io, { Socket } from 'socket.io-client';
 import Link from "next/link";
 import { SocketContext } from "@/context/SocketContext";
-import { globalArrayReducer, globalObjectReducer } from "@/utils/reducer";
+import { globalArrayReducer } from "@/utils/reducer";
 import { User, UserContext } from "@/context/UserContext";
+import { NotificationContext } from "@/context/NotificationContext";
 
 export default function DashboardLayout(props: {children: React.ReactNode}) {
 
     var authContext = useContext(AuthContext);
     const router = useRouter();
+
+    const notify = useContext(NotificationContext);
 
     const [socket, setSocket] = useState<Socket>();
     const [user, setUser] = useState<User>();
@@ -29,11 +32,11 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
 
         axios.get('/api/user', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setUser(res.data);
-        })
+        }).catch(notify);
         axios.get("/api/user/channels", {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             dispatchChannelUpdate({action: 'set', data: res.data.channels});
             setChannelsLoaded(true);
-        })
+        }).catch(notify);
 
         axios.get('/api/ws').then(res=>{
             if (socket) return;
@@ -41,8 +44,12 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
             newSocket.on('connect', ()=>{
                 console.log('WebSocket connected');
             });
+            newSocket.on('disconnect', ()=>{
+                console.log('WebSocket disconnected');
+                notify("Error", "Lost connection to server", true);
+            });
             setSocket(newSocket);
-        });
+        }).catch(notify);
         // Cleanup
         return ()=>{
             if (socket) socket.disconnect();
