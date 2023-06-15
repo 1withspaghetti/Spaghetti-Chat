@@ -40,7 +40,7 @@ const SignUp: NextPageWithLayout = () => {
     return (
         <div className="rounded-lg shadow-lg px-6 sm:px-16 py-4 bg-slate-200 dark:bg-slate-800">
             <h1 className="mb-4 text-2xl font-bold text-center">Sign Up</h1>
-            <form className="flex flex-col items-center" onSubmit={onSubmit}>
+            <form className="flex flex-col items-center gap-2" onSubmit={onSubmit}>
                 <FormInput ref={email} id="email" label="Email" validator={SignUpValidator.email} 
                     attr={{autoComplete: "email", autoFocus: true}}>
                 </FormInput>
@@ -58,7 +58,7 @@ const SignUp: NextPageWithLayout = () => {
                 </FormInput>
                 
                 
-                <div className="text-center mt-4">
+                <div className="text-center my-2">
                     <input type="submit" value={"Continue"} className={`w-min rounded-lg shadow font-semibold mx-1 px-4 py-[2px] transition-all text-navy-50 ${!loading ? 'cursor-pointer bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105' : 'bg-blue-600 dark:bg-blue-800'}`}></input>
                 </div>
             </form>

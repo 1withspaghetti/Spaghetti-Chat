@@ -37,7 +37,7 @@ const Login: NextPageWithLayout = () => {
     return (
         <div className="rounded-lg shadow-lg px-6 sm:px-16 py-4 bg-slate-200 dark:bg-slate-800">
             <h1 className="mb-4 text-2xl font-bold text-center" onClick={()=>{console.log(authContext.resourceToken)}}>Login</h1>
-            <form className="flex flex-col items-center" onSubmit={onSubmit}>
+            <form className="flex flex-col items-center gap-2" onSubmit={onSubmit}>
                 <FormInput ref={user} id="user" label="Username or Email" validator={LoginValidator.user} 
                     attr={{autoComplete: "username", autoFocus: true}}></FormInput>
 
@@ -45,7 +45,7 @@ const Login: NextPageWithLayout = () => {
                     attr={{type: "password", autoComplete: "current-password"}}>
                         <Link href="/password-recovery" className="text-sm text-blue-500" style={{lineHeight: "24px"}}>Forgot Password</Link>
                 </FormInput>
-                <div className="text-center mt-4">
+                <div className="text-center my-2">
                     <input type="submit" value={"Continue"} className="w-min rounded-lg shadow font-semibold mx-1 px-4 py-[2px] cursor-pointer transition-all text-navy-50 bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105"></input>
                 </div>
             </form>

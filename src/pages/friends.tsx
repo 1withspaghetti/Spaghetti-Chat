@@ -11,6 +11,7 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { SocketContext } from "@/context/SocketContext";
 import { globalArrayReducer } from "@/utils/reducer";
 import { NotificationContext } from "@/context/NotificationContext";
+import { UsernameSearchValidator } from "@/utils/validation/userValidation";
 
 const Friends: NextPageWithLayout = () => {
     
@@ -66,6 +67,8 @@ const Friends: NextPageWithLayout = () => {
         debounceTimer = setTimeout(updateSearch, 250) as any;
     }
     function updateSearch() {
+        if (!searchElement.current?.testInput()) return setSearchResults([]);
+
         var q = searchElement.current?.getValue().replaceAll(/[^\w]/g, '');
         if (!q) return setSearchResults([]);
         axios.get("/api/user/search", {params: {q}, headers: {Authorization: authContext.resourceToken}}).then(res => {
@@ -117,12 +120,12 @@ const Friends: NextPageWithLayout = () => {
         <>
             <div className="w-full flex flex-col px-4 items-center mt-4 mb-4 pr-6">
                 <div className="w-full max-w-lg px-4 py-1 gradient bg-opacity-100 rounded-lg shadow-lg md:text-lg font-bold">Add Friends</div>
-                <div className="relative w-full max-w-sm">
-                    <FormInput ref={searchElement} id="search" label="" attr={{placeholder: "Search Users", onChange: updateSearchDebounce, autoComplete: 'off', onKeyDown: searchNavigation}} width={384}></FormInput>
+                <div className="relative w-full max-w-sm pt-2">
+                    <FormInput ref={searchElement} id="search" label="" validator={UsernameSearchValidator} noShift attr={{placeholder: "Search Users", onChange: updateSearchDebounce, autoComplete: 'off', onKeyDown: searchNavigation}} width={384}></FormInput>
                     {searchResults.length > 0 && 
-                    <div className="absolute z-20 w-full flex flex-col gap-2 gradient bg-opacity-100 shadow-lg rounded-lg">
+                    <div className="absolute z-20 w-full flex flex-col gradient bg-opacity-100 shadow-lg rounded-lg">
                         {searchResults.map((x, i) => 
-                            <div className={`bg-black bg-opacity-0 hover:bg-opacity-10 transition-colors ${searchTab != i ? 'bg-opacity-0' : 'bg-opacity-10'}`} key={x.id} onClick={()=>{addFriend(x)}}>
+                            <div className={`bg-black bg-opacity-0 hover:bg-opacity-20 transition-colors ${searchTab != i ? 'bg-opacity-0' : 'bg-opacity-20'}`} key={x.id} onClick={()=>{addFriend(x)}}>
                                 <User {...x}></User>
                             </div>
                         )}

@@ -9,7 +9,9 @@ type Props = {
     validator?: Schema,
     children?: any,
     width?: number,
-    class?: string
+    class?: string,
+    noShift?: boolean,
+    initialVal?: string
 }
 
 export default class FormInput extends React.Component<Props> {
@@ -17,7 +19,8 @@ export default class FormInput extends React.Component<Props> {
     input: React.RefObject<HTMLInputElement>;
     state = {
         valid: true,
-        error: ""
+        error: "",
+        hasSetInitial: false
     }
 
     constructor(props: Props) {
@@ -31,7 +34,7 @@ export default class FormInput extends React.Component<Props> {
         if (!this.input.current) return false;
         const value = this.input.current.value;
 
-        if (!this.props.validator) return !!value;
+        if (!this.props.validator) return true;
         try {
             this.props.validator.validateSync(value);
             return true;
@@ -54,13 +57,28 @@ export default class FormInput extends React.Component<Props> {
 
     render(): React.ReactNode {
         return (
-            <div className="mt-2 w-full" style={{maxWidth: `${this.props.width || 288}px`}}>
+            <div className="w-full relative" style={{maxWidth: `${this.props.width || 288}px`}}>
                 <div className="flex justify-between font-semibold">
                     <label htmlFor={this.props.id}>{this.props.label}</label>
                     {this.props.children}
                 </div>
-                <input ref={this.input} type="text" id={this.props.id} name={this.props.id} onChange={()=>this.testInput()} className={`w-full rounded shadow border-[3px] px-1 bg-neutral-100 dark:bg-slate-700 outline-none ${this.state.valid ? 'border-transparent focus:border-blue-500 dark:focus:border-blue-700' : 'border-red-500'} ${this.props.class || ''}`} {...this.props.attr}></input>
-                {!this.state.valid && <div className="text-sm text-red-500">{this.state.error}</div>}
+                <input 
+                    ref={this.input} 
+                    type="text" 
+                    id={this.props.id} 
+                    name={this.props.id} 
+                    onChange={()=>this.testInput()} 
+                    value={this.state.hasSetInitial ?
+                         undefined : 
+                         (()=>{this.setState({hasSetInitial: true}); return this.props.initialVal})()} 
+                    className={`peer w-full rounded shadow border-[3px] px-1 bg-neutral-100 dark:bg-slate-700 outline-none ${this.state.valid ? 'border-transparent focus:border-blue-500 dark:focus:border-blue-700' : 'border-red-500'} ${this.props.class || ''}`} 
+                    {...this.props.attr}>
+                </input>
+                { this.props.noShift ? 
+                    (this.props.validator && !this.state.valid) && <div className="px-2 py-2 h-fit rounded-lg shadow-lg hidden peer-focus:block peer-hover:block absolute z-40 bg-black bg-opacity-50 backdrop-blur-sm text-sm text-red-500">{this.state.error}</div>
+                :
+                    (this.props.validator) && <div className="text-sm text-red-500">{!this.state.valid && this.state.error}</div>
+                }
             </div>
         )
     }

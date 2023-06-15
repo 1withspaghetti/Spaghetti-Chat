@@ -7,6 +7,8 @@ import axios from "axios";
 import Image from "next/image";
 import { UserContext } from "@/context/UserContext";
 import { NotificationContext } from "@/context/NotificationContext";
+import FormInput from "@/components/FormInput";
+import { SignUpValidator } from "@/utils/validation/authValidation";
 
 const Home: NextPageWithLayout = () => {
 
@@ -16,7 +18,9 @@ const Home: NextPageWithLayout = () => {
     const router = useRouter();
 
     const [settings, setSettings] = useState<any>();
+    const [originalSettings, setOriginalSettings] = useState<any>();
 
+    const usernameInput = useRef<FormInput>(null);
     const avatarInput = useRef<HTMLInputElement>(null);
     const aboutMe = useRef<HTMLTextAreaElement>(null);
 
@@ -25,16 +29,18 @@ const Home: NextPageWithLayout = () => {
 
         axios.get('/api/user/settings', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setSettings(res.data);
+            usernameInput.current?.setValue(res.data.username);
+            setOriginalSettings({...res.data});
         }).catch(notify);
     }, [authContext.awaitAuth])
 
     function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
         if (!e.target.files || !e.target.files[0]) return;
         var file = e.target.files[0];
-        // if (file.size > 1024 * 1024) {
-        //     notify("Error", "File must be less than 1MB", true);
-        //     return;
-        // }
+        if (file.size > 1024 * 1024) {
+            notify("Error", "File must be less than 1MB", true);
+            return;
+        }
         if (!file.type.match(/image\/(png|jpg|jpeg|webp|gif)/)) {
             notify("Error", "Supported file extensions: PNG, JPG, WEBP, GIF", true);
             return;
@@ -72,7 +78,7 @@ const Home: NextPageWithLayout = () => {
                     <div className="text-lg font-bold">Settings</div>
                 </div>
                 <div className="flex flex-col gap-2 w-full h-full px-4 pt-16 pb-4 overflow-y-auto">
-                    <div className="mx-auto w-full max-w-lg p-2 sm:p-4 gradient bg-opacity-50 rounded-lg shadow-lg">
+                    <div className="mx-auto w-full max-w-lg p-2 sm:p-4 gradient bg-opacity-90 rounded-lg shadow-lg">
                         <div className="flex items-center gap-3 sm:gap-6">
                             <div className="w-16 sm:w-24 h-16 sm:h-24 flex-shrink-0 relative rounded-full bg-black bg-opacity-25 select-none overflow-hidden group">
                                 <img src={`/api/avatar/${settings.avatar}`} className="pfp large"></img>
@@ -83,7 +89,7 @@ const Home: NextPageWithLayout = () => {
                             </div>
                             <div className="flex flex-col">
                                 <div className="flex gap-2 text-base sm:text-2xl font-bold break-all">
-                                    <span>{settings.username}</span>
+                                    <FormInput ref={usernameInput} id="username" label="" validator={SignUpValidator.user} noShift initialVal={settings.username} attr={{placeholder: "Username", style: {background: "rgb(0 0 0 / 0.25)"}, autoCorrect: "false", autoComplete: "off"}}></FormInput>
                                     <button className="group flex-shrink-0">
                                         <Image width={24} height={24} src="/imgs/color-icon.svg" alt="Select user color" className="opacity-50 group-hover:opacity-75 transition-opacity"></Image>
                                     </button>
