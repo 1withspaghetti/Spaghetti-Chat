@@ -9,6 +9,7 @@ import { UserContext } from "@/context/UserContext";
 import { NotificationContext } from "@/context/NotificationContext";
 import FormInput from "@/components/FormInput";
 import { SignUpValidator } from "@/utils/validation/authValidation";
+import AvatarZoom from "@/components/AvatarZoom";
 
 const Home: NextPageWithLayout = () => {
 
@@ -16,6 +17,8 @@ const Home: NextPageWithLayout = () => {
     var userContext = useContext(UserContext);
     const notify = useContext(NotificationContext);
     const router = useRouter();
+
+    const [popup, setPopup] = useState<undefined|"avatar">();
 
     const [settings, setSettings] = useState<any>();
     const [originalSettings, setOriginalSettings] = useState<any>();
@@ -45,12 +48,13 @@ const Home: NextPageWithLayout = () => {
             notify("Error", "Supported file extensions: PNG, JPG, WEBP, GIF", true);
             return;
         }
-        var formData = new FormData();
-        formData.append("avatar", file);
-        axios.post('/api/user/avatar', formData, {headers: {Authorization: authContext.resourceToken}}).then(res=>{
-            setSettings({...settings, avatar: res.data.avatar});
-            notify("", "Your avatar has been updated successfully.");
-        }).catch(notify);
+        setPopup("avatar");
+        // var formData = new FormData();
+        // formData.append("avatar", file);
+        // axios.post('/api/user/avatar', formData, {headers: {Authorization: authContext.resourceToken}}).then(res=>{
+        //     setSettings({...settings, avatar: res.data.avatar});
+        //     notify("", "Your avatar has been updated successfully.");
+        // }).catch(notify);
     }
 
     const aboutMeAdjustSize = ()=>{
@@ -85,7 +89,7 @@ const Home: NextPageWithLayout = () => {
                                 <label tabIndex={0} htmlFor="avatar" className="absolute top-0 right-0 left-0 bottom-0 flex justify-center items-center bg-black bg-opacity-80 opacity-0 group-hover:opacity-75 focus:opacity-100 transition-opacity cursor-pointer">
                                     <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 -960 960 960"><path d="M769-648v-94h-94v-72.5h94V-908h72v93.5h95v72.5h-95v94h-72ZM109-55q-39.05 0-66.525-27.475Q15-109.95 15-149v-495q0-38.463 27.475-66.731Q69.95-739 109-739h132l84-98h257v95H368l-84 98H109v495h661v-393h95v393q0 39.05-28.269 66.525Q808.463-55 770-55H109Zm330.5-171q72.5 0 121.5-49t49-121.5q0-72.5-49-121T439.5-566q-72.5 0-121 48.5t-48.5 121q0 72.5 48.5 121.5t121 49Zm0-60q-47.5 0-78.5-31.5t-31-79q0-47.5 31-78.5t78.5-31q47.5 0 79 31t31.5 78.5q0 47.5-31.5 79t-79 31.5Zm.5-110Z"/></svg>
                                 </label>
-                                <input type="file" id="avatar" name="avatar" accept="image/*" className="hidden" onChange={uploadAvatar}></input>
+                                <input ref={avatarInput} type="file" id="avatar" name="avatar" accept="image/*" className="hidden" onChange={uploadAvatar}></input>
                             </div>
                             <div className="flex flex-col">
                                 <div className="flex gap-2 text-base sm:text-2xl font-bold break-all">
@@ -110,6 +114,15 @@ const Home: NextPageWithLayout = () => {
                     </div>
                 </div>
             </div>
+            { popup && 
+                <div className='fixed z-50 top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-50' onClick={()=>setPopup(undefined)}>
+                    {popup === 'avatar' && 
+                        <div className='max-w-lg w-full flex flex-col items-center gradient bg-opacity-60 p-6 m-4 rounded-lg shadow-lg text-center' onClick={(e)=>e.stopPropagation()}>
+                            <AvatarZoom src={avatarInput.current?.files?.[0]} onSubmit={()=>{}} onCancel={()=>{}}></AvatarZoom>
+                        </div>
+                    }
+                </div>
+            }
         </>
     )
 }

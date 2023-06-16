@@ -20,12 +20,13 @@ export default class FormInput extends React.Component<Props> {
     state = {
         valid: true,
         error: "",
-        hasSetInitial: false
+        value: ""
     }
 
     constructor(props: Props) {
         super(props);
         this.input = createRef();
+        this.state.value = props.initialVal || "";
     }
 
     testInput(): boolean {
@@ -67,10 +68,8 @@ export default class FormInput extends React.Component<Props> {
                     type="text" 
                     id={this.props.id} 
                     name={this.props.id} 
-                    onChange={()=>this.testInput()} 
-                    value={this.state.hasSetInitial ?
-                         undefined : 
-                         (()=>{this.setState({hasSetInitial: true}); return this.props.initialVal})()} 
+                    onChange={()=>{this.testInput();this.setState({value: this.input.current!.value})}} 
+                    value={this.state.value} 
                     className={`peer w-full rounded shadow border-[3px] px-1 bg-neutral-100 dark:bg-slate-700 outline-none ${this.state.valid ? 'border-transparent focus:border-blue-500 dark:focus:border-blue-700' : 'border-red-500'} ${this.props.class || ''}`} 
                     {...this.props.attr}>
                 </input>
