@@ -29,7 +29,7 @@ const options: Partial<formidable.Options> = {
     },
     fileWriteStreamHandler: (file)=>{
         if (!file) throw new ApiError("Error uploading files", HttpStatusCode.InternalServerError);
-        let transform = sharp().resize(128, 128, {fit: 'inside'}).toFormat('webp');
+        let transform = sharp().resize(128, 128, {fit: 'fill'}).toFormat('webp');
         transform.toFile((file as any).filepath);
         return transform;
     },
