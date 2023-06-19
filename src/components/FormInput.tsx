@@ -11,7 +11,8 @@ type Props = {
     width?: number,
     class?: string,
     noShift?: boolean,
-    initialVal?: string
+    initialVal?: string,
+    value?: [string|undefined, (val: string)=>void]
 }
 
 export default class FormInput extends React.Component<Props> {
@@ -19,14 +20,12 @@ export default class FormInput extends React.Component<Props> {
     input: React.RefObject<HTMLInputElement>;
     state = {
         valid: true,
-        error: "",
-        value: ""
+        error: ""
     }
 
     constructor(props: Props) {
         super(props);
         this.input = createRef();
-        this.state.value = props.initialVal || "";
     }
 
     testInput(): boolean {
@@ -68,8 +67,8 @@ export default class FormInput extends React.Component<Props> {
                     type="text" 
                     id={this.props.id} 
                     name={this.props.id} 
-                    onChange={()=>{this.testInput();this.setState({value: this.input.current!.value})}} 
-                    value={this.state.value} 
+                    onChange={()=>{this.testInput(); if (this.props.value) this.props.value[1](this.input.current!.value)}} 
+                    value={this.props.value && this.props.value[0]} 
                     className={`peer w-full rounded shadow border-[3px] px-1 bg-neutral-100 dark:bg-slate-700 outline-none ${this.state.valid ? 'border-transparent focus:border-blue-500 dark:focus:border-blue-700' : 'border-red-500'} ${this.props.class || ''}`} 
                     {...this.props.attr}>
                 </input>
