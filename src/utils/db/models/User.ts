@@ -15,7 +15,8 @@ export type IUser = {
     created: Date,
     friends: number[],
     avatarNext: Date,
-    usernameLastModified: Date
+    usernameNext: Date,
+    emailNext: Date,
 }
 
 const userSchema = new Schema<IUser>({
@@ -32,7 +33,8 @@ const userSchema = new Schema<IUser>({
     created: { type: Date, default: Date.now },
     friends: [Number],
     avatarNext: { type: Date, default: Date.now },
-    usernameLastModified: { type: Date, default: Date.now },
+    usernameNext: { type: Date, default: Date.now },
+    emailNext: { type: Date, default: Date.now },
 });
 
 // Rename _id to id

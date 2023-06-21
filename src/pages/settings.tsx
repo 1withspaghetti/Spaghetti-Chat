@@ -22,6 +22,7 @@ const Home: NextPageWithLayout = () => {
     const [popup, setPopup] = useState<undefined|"avatar">();
 
     const [settingsLoaded, setSettingsLoaded] = useState<boolean>(false);
+    const [email, setEmail] = useState<string>();
     const [username, setUsername] = useState<string>();
     const [color, setColor] = useState<number>();
     const [about, setAbout] = useState<string>();
@@ -32,11 +33,13 @@ const Home: NextPageWithLayout = () => {
     const avatarInput = useRef<HTMLInputElement>(null);
     const aboutMe = useRef<HTMLTextAreaElement>(null);
     const [colorPanel, setColorPanel] = useState<boolean>(false);
+    const [emailShown, setEmailShown] = useState<boolean>(false);
 
     useEffect(()=>{
         if (authContext.awaitAuth || !authContext.loggedIn || settingsLoaded) return;
 
         axios.get('/api/user/settings', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
+            setEmail(res.data.email);
             setUsername(res.data.username);
             setColor(res.data.color);
             setAbout(res.data.about);
@@ -81,6 +84,20 @@ const Home: NextPageWithLayout = () => {
         aboutMe.current.style.height = Math.max(Math.min(aboutMe.current.scrollHeight, 128), 72) + "px";
     }
 
+    function resetSettings() {
+        setEmail(originalSettings.email);
+        setUsername(originalSettings.username);
+        setColor(originalSettings.color);
+        setAbout(originalSettings.about);
+        setAvatar(originalSettings.avatar);
+    }
+
+    function saveSettings() {
+        axios.post('/api/user/settings', {email, username, color, about}, {headers: {Authorization: authContext.resourceToken}}).then(res=>{
+            setOriginalSettings({...res.data});
+            notify("", "Your settings have been updated!");
+        }).catch(notify);
+    }
 
 
     if (!settingsLoaded) {
@@ -99,7 +116,7 @@ const Home: NextPageWithLayout = () => {
                 <div className="absolute flex z-10 top-2 left-2 right-2 ml-2 mr-4 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg">
                     <div className="text-lg font-bold">Settings</div>
                 </div>
-                <div className="flex flex-col gap-2 w-full h-full px-4 pt-16 pb-4 overflow-y-auto">
+                <div className="flex flex-col items-center gap-2 w-full h-full px-4 pt-16 pb-4 overflow-y-auto">
                     <div className="mx-auto w-full max-w-lg p-2 sm:p-4 gradient bg-opacity-90 rounded-lg shadow-lg">
                         <div className="flex gap-3 sm:gap-6">
                             <div className="w-16 sm:w-24 h-16 sm:h-24 flex-shrink-0 relative rounded-full bg-black bg-opacity-25 select-none overflow-hidden group">
@@ -141,6 +158,30 @@ const Home: NextPageWithLayout = () => {
                                 className="mt-1 px-2 w-full bg-black bg-opacity-25 outline-none resize-none rounded slim-scrollbar">
                             </textarea>
                         </div>
+                    </div>
+                    <div className="sm:grid grid-cols-[auto,auto] mt-4 gap-x-4 gap-y-2 text-lg">
+                        <div className="font-bold">Account Created:</div>
+                        <div className="">{new Date(originalSettings.created).toLocaleString()}</div>
+                        <div className="font-bold">Email:</div>
+                        <div className="">
+                            { !emailShown ? 
+                                <>
+                                    <span>********</span>
+                                    <span>@{email?.split('@')[1]}</span>
+                                </>
+                                :
+                                <span>{email}</span>
+                            }
+                            {emailShown ? <button className="ml-2 text-xs opacity-50" onClick={()=>setEmailShown(false)}>Hide</button> : <button className="ml-2 text-xs opacity-50" onClick={()=>setEmailShown(true)}>Reveal</button>}
+                        </div>
+                    </div>
+                    <div className="mt-0 flex gap-6">
+                        <button onClick={()=>notify('Error', 'Not supported yet :(', true)} className="text-base text-blue-500 underline">Change Email</button>
+                        <button onClick={()=>notify('Error', 'Not supported yet :(', true)} className="text-base text-blue-500 underline">Change Password</button>
+                    </div>
+                    <div className="mt-6 flex gap-2">
+                        <button onClick={resetSettings} onTouchStart={resetSettings} className="w-min rounded-lg shadow font-semibold mx-1 px-2 py-1 transition-all text-navy-50 bg-slate-400 dark:bg-slate-500 hover:shadow-lg hover:scale-105">Reset</button>
+                        <button onClick={saveSettings} onTouchStart={saveSettings} className="w-min rounded-lg shadow font-semibold mx-1 px-4 py-1 transition-all text-navy-50 bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105">Save</button>
                     </div>
                 </div>
             </div>
