@@ -20,7 +20,6 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
 
 const validator = object({
   username: SignUpValidator.user,
-  email: SignUpValidator.email,
   color: number().min(0, 'Invalid Color').max(16777215, 'Invalid Color').test('test-color', 'Invalid Color', (e)=>{
     if (!e) return true;
     let hex = '#'+e.toString(16);
@@ -33,7 +32,7 @@ const validator = object({
 async function POST(req: NextApiRequest, res: NextApiResponse) {
   const _id = verifyResourceJWT(req.headers.authorization);
 
-  const { username, email, color, about } = await validator.validate(req.body);
+  const { username, color, about } = await validator.validate(req.body);
 
   await mongodb();
   var user = await User.findOne({_id}, {_id: true, username: true, email: true, avatar: true, color: true, meta: true, created: true, about: true, settings: true});
@@ -44,13 +43,7 @@ async function POST(req: NextApiRequest, res: NextApiResponse) {
     // If over 2 username changes in the last 2 hours (regenerates at 1 change every hour)
     if (Date.now() < (user.usernameNext||new Date()).getTime() - (3600000 * 2)) throw new ApiError("You have updated your username too many times recently, please try again in an hour.", HttpStatusCode.BadRequest);
     user.usernameNext = new Date(Math.max((user.usernameNext||new Date()).getTime(), Date.now()) + 3600000);
-  }
-  if (user.email != email) {
-    var emailExists = await User.exists({email});
-    if (emailExists) throw new ApiError("Email already taken", HttpStatusCode.BadRequest);
-    // If over 2 email changes in the last 2 hours (regenerates at 1 change every hour)
-    if (Date.now() < (user.emailNext||new Date()).getTime() - (3600000 * 2)) throw new ApiError("You have updated your email too many times recently, please try again in an hour.", HttpStatusCode.BadRequest);
-    user.emailNext = new Date(Math.max((user.emailNext||new Date()).getTime(), Date.now()) + 3600000);
+    user.username = username;
   }
   if (user.color != color) {
     user.color = color;

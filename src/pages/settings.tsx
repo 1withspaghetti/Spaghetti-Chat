@@ -35,6 +35,8 @@ const Home: NextPageWithLayout = () => {
     const [colorPanel, setColorPanel] = useState<boolean>(false);
     const [emailShown, setEmailShown] = useState<boolean>(false);
 
+    const [hasChanges, setHasChanges] = useState<boolean>(false);
+
     useEffect(()=>{
         if (authContext.awaitAuth || !authContext.loggedIn || settingsLoaded) return;
 
@@ -89,15 +91,22 @@ const Home: NextPageWithLayout = () => {
         setUsername(originalSettings.username);
         setColor(originalSettings.color);
         setAbout(originalSettings.about);
-        setAvatar(originalSettings.avatar);
     }
 
     function saveSettings() {
-        axios.post('/api/user/settings', {email, username, color, about}, {headers: {Authorization: authContext.resourceToken}}).then(res=>{
+        axios.post('/api/user/settings', {username, color, about}, {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             setOriginalSettings({...res.data});
-            notify("", "Your settings have been updated!");
         }).catch(notify);
     }
+
+    useEffect(()=>{
+        if (!settingsLoaded) return;
+        if (username != originalSettings.username || color != originalSettings.color || about != originalSettings.about) {
+            setHasChanges(true);
+        } else {
+            setHasChanges(false);
+        }
+    }, [originalSettings, username, color, about]);
 
 
     if (!settingsLoaded) {
@@ -184,6 +193,9 @@ const Home: NextPageWithLayout = () => {
                         <button onClick={saveSettings} onTouchStart={saveSettings} className="w-min rounded-lg shadow font-semibold mx-1 px-4 py-1 transition-all text-navy-50 bg-blue-500 dark:bg-blue-700 hover:shadow-lg hover:scale-105">Save</button>
                     </div>
                 </div>
+            </div>
+            <div className={`absolute left-0 bottom-0 right-0 px-4 py-2 text-center bg-red-600 shadow-lg rounded-t-lg text-white ${hasChanges ? 'translate-y-0' : 'translate-y-full'} transition-transform`}>
+                <b>Careful!</b> You have unsaved changes! <a href="#" onClick={saveSettings} className="underline">Save</a> - <a href="#" onClick={resetSettings} className="underline">Reset</a>
             </div>
             { popup && 
                 <div className='fixed z-50 top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-50' onClick={()=>setPopup(undefined)}>
