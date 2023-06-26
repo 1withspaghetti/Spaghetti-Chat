@@ -38,8 +38,7 @@ const Home: NextPageWithLayout = () => {
                         </>
                     }
                 </div>
-                <MessageInput />
-                <div className="absolute top-16 right-12"><ThemeSwitch></ThemeSwitch></div>
+                <MessageInput to="1withspaghetti" />
             </div>
         </>
   )

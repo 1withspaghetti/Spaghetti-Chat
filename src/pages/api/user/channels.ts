@@ -7,7 +7,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 export async function getChannels(match: any, userId: number) {
     return Channel.find(
         {members: userId}, 
-        {_id: true, dm: true, name: true, owner: true, avatar: true, lastMessage: true, members: {$elemMatch: {$ne: userId}}},
+        {_id: true, dm: true, name: true, owner: true, avatar: true, lastMessage: true, members: {$elemMatch: {$ne: userId}}, [`lastRead.${userId}`]: true, created: true},
         {sort: {lastMessage: -1}}
     ).populate("members", {_id: true, username: true, avatar: true, color: true})
 }

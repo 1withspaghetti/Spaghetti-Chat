@@ -8,7 +8,7 @@ export type IChannel = {
     avatar?: number,
     owner?: number,
     members: number[],
-    unread: {user: number, messageId: number}[],
+    lastRead: { [key: number]: Date },
     lastMessage?: Date,
     created: Date,
 }
@@ -20,7 +20,7 @@ const channelSchema = new Schema<IChannel>({
     avatar: Number,
     owner: {type: Number, ref: 'User' },
     members: [{type: Number, ref: 'User' }],
-    unread: [{user: {type: Number, ref: 'User' }, messageId: Number}],
+    lastRead: {type: Map, of: {type: Date, default: 0 }},
     lastMessage: { type: Date, default: Date.now },
     created: { type: Date, default: Date.now },
 });
