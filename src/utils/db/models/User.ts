@@ -31,7 +31,7 @@ const userSchema = new Schema<IUser>({
     hash: Buffer,
     loginAttemptNext: { type: Date, default: Date.now },
     created: { type: Date, default: Date.now },
-    friends: [Number],
+    friends: [{type: Number, ref: 'User' }],
     avatarNext: { type: Date, default: Date.now },
     usernameNext: { type: Date, default: Date.now },
     emailNext: { type: Date, default: Date.now },

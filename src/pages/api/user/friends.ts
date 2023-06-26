@@ -15,10 +15,12 @@ async function GET(req: NextApiRequest, res: NextApiResponse) {
     const id = verifyResourceJWT(req.headers.authorization);
 
     await mongodb();
-    const friends = await User.aggregate([{$match: {_id: id}}, {$lookup: {from: "users", localField: "friends", foreignField: "_id", as: "friends"}}, {$project: {"friends._id": true, "friends.username": true, "friends.avatar": true, "friends.color": true}}]);
-    const incoming = await FriendRequest.aggregate([{$match: {to: id}}, {$lookup: {from: "users", localField: "from", foreignField: "_id", as: "from"}}, {$project: {"from._id": true, "from.username": true, "from.avatar": true, "from.color": true}}]);
-    const outgoing = await FriendRequest.aggregate([{$match: {from: id}}, {$lookup: {from: "users", localField: "to", foreignField: "_id", as: "to"}}, {$project: {"to._id": true, "to.username": true, "to.avatar": true, "to.color": true}}]);
-    res.status(200).json({friends: friends[0].friends.map((d: any)=>transformId(d)) || [], incoming: incoming.map(d=>transformId(d.from[0])), outgoing: outgoing.map(d=>transformId(d.to[0]))});
+    const friends = await User.findOne({_id: id}, {friends: true}).populate("friends", {_id: true, username: true, avatar: true, color: true});
+    const incoming = await FriendRequest.find({to: id}, {from: true}).populate("from", {_id: true, username: true, avatar: true, color: true});
+    const outgoing = await FriendRequest.find({from: id}, {to: true}).populate("to", {_id: true, username: true, avatar: true, color: true});
+    if (!friends) throw new ApiError("User not found", HttpStatusCode.NotFound);
+
+    res.status(200).json({friends: friends.toJSON().friends || [], incoming: incoming.map(d=>d.toJSON().from), outgoing: outgoing.map(d=>d.toJSON().from)});
 }
 
 async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
@@ -58,8 +60,8 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
             var dm = new Channel({_id: generateRandomId(), dm: true, members: [id, to]});
             await dm.save();
             await Promise.all([
-                getChannels({_id: dm._id}, id).then(d=>res.socket.server.io.to(`u${id}`).emit("channelUpdate", {action: "add", data: transformId(d[0])})),
-                getChannels({_id: dm._id}, to).then(d=>res.socket.server.io.to(`u${to}`).emit("channelUpdate", {action: "add", data: transformId(d[0])}))
+                getChannels({_id: dm._id}, id).then(d=>res.socket.server.io.to(`u${id}`).emit("channelUpdate", {action: "add", data: d[0].toJSON()})),
+                getChannels({_id: dm._id}, to).then(d=>res.socket.server.io.to(`u${to}`).emit("channelUpdate", {action: "add", data: d[0].toJSON()}))
             ]);
         }
 

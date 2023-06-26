@@ -1,4 +1,4 @@
-import mongoose, { ObjectId, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 export type IFriendRequest = {
     to: number,
@@ -7,8 +7,8 @@ export type IFriendRequest = {
 }
 
 const friendRequestSchema = new Schema<IFriendRequest>({
-    to: Number,
-    from: Number,
+    to: {type: Number, ref: 'User' },
+    from: {type: Number, ref: 'User' },
     created: { type: Date, default: Date.now },
 });
 
