@@ -21,7 +21,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
     const [user, setUser] = useState<User>();
 
     const [channelsLoaded, setChannelsLoaded] = useState<boolean>(false);
-    const [channels, dispatchChannelUpdate] = useReducer(globalArrayReducer, []);
+    const [channels, dispatchChannelUpdate] = useReducer(globalArrayReducer((a,b)=>new Date(b.lastMessage).getTime()-new Date(a.lastMessage).getTime()), []);
 
     useEffect(()=>{
         if (!authContext.awaitAuth && !authContext.loggedIn) router.push('/login?url='+router.route);
@@ -106,7 +106,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                             </>
                         }
                     </div>
-                    <Link href="/settings" className={`px-1 ${open ? 'opacity-50' : 'opacity-0'} group cursor-pointer`}>
+                    <Link href="/settings" passHref className={`px-1 ${open ? 'opacity-50' : 'opacity-0'} group cursor-pointer`}>
                         <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 96 960 960" className="group-hover:opacity-75 transition-opacity"><path d="m388 976-20-126q-19-7-40-19t-37-25l-118 54-93-164 108-79q-2-9-2.5-20.5T185 576q0-9 .5-20.5T188 535L80 456l93-164 118 54q16-13 37-25t40-18l20-127h184l20 126q19 7 40.5 18.5T669 346l118-54 93 164-108 77q2 10 2.5 21.5t.5 21.5q0 10-.5 21t-2.5 21l108 78-93 164-118-54q-16 13-36.5 25.5T592 850l-20 126H388Zm92-270q54 0 92-38t38-92q0-54-38-92t-92-38q-54 0-92 38t-38 92q0 54 38 92t92 38Z"/></svg>
                     </Link>
                 </div>
@@ -127,8 +127,8 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                                 </>
                             :
                                 <>
-                                    {(channels).sort((a,b)=>new Date(b.lastMessage).getTime()-new Date(a.lastMessage).getTime()).map((x, i) =>
-                                        <Link href={`/channel/${x.id}`} className={`flex items-center gap-2 py-1 bg-black bg-opacity-0 hover:bg-opacity-10 ${open ? `px-4` : `px-2`} transition-all`} key={x.id}>
+                                    {(channels).map((x, i) =>
+                                        <Link href={`/channel/${x.id}`} passHref className={`flex items-center gap-2 py-1 bg-black bg-opacity-0 hover:bg-opacity-10 ${open ? `px-4` : `px-2`} transition-all`} key={x.id}>
                                             <img src={`/api/avatar/${x.avatar || (x.dm ? x.members[0].avatar : (x.members as any[]).find(u=>u.id==x.owner).avatar)}?size=48`} alt="Profile Picture" width={48} height={48} className="pfp"></img>
                                             <div className={`text-lg font-bold overflow-hidden whitespace-nowrap text-ellipsis ${open ? 'opacity-100' : 'opacity-0'} transition-opacity`}>{x.name || (x.members as any[]).map(x=>x.username).sort().join(', ')}</div>
                                         </Link>

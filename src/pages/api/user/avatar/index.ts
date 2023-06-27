@@ -25,7 +25,7 @@ const options: Partial<formidable.Options> = {
         return !!part.mimetype?.match(/^image\/(png|jpg|jpeg|webp|gif)$/) && part.name==='avatar';
     },
     filename: (name, ext, part, form)=>{
-        return generateRandomId() + '.webp';
+        return generateRandomId('avatar') + '.webp';
     },
     fileWriteStreamHandler: (file)=>{
         if (!file) throw new ApiError("Error uploading files", HttpStatusCode.InternalServerError);

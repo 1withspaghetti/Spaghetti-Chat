@@ -25,7 +25,7 @@ async function POST(req: NextApiRequest, res: NextApiResponse<AuthTokenPair>) {
 
     if (userByEmail) throw new ApiError("Email is already in use", HttpStatusCode.BadRequest);
 
-    var _id = generateRandomId();
+    var _id = generateRandomId("user");
 
     var salt = crypto.randomBytes(16);
     var hash = crypto.createHash("sha512").update(body.pass).update(salt).digest();

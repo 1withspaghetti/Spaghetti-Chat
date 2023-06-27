@@ -24,7 +24,7 @@ export default function LoginLayout({children}: {children: React.ReactNode}) {
         <>
             <div className="sticky top-0 left-0 right-0 text-center flex justify-center">
                 <div className='w-full sm:w-max px-6 py-2 bg-slate-200 dark:bg-slate-800 sm:rounded-b-lg shadow-lg flex flex-col sm:flex-row justify-center items-center'>
-                    <Link href="/" className="whitespace-nowrap px-4 py-2 cursor-pointer hover:opacity-90 transition">
+                    <Link href="/" passHref className="whitespace-nowrap px-4 py-2 cursor-pointer hover:opacity-90 transition">
                         <div className="text-2xl font-bold">Spaghetti Chat</div>
                         <div className="text-sm italic opacity-75">Online Chat Service</div>
                     </Link>

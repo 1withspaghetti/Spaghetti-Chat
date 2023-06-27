@@ -38,7 +38,7 @@ const Home: NextPageWithLayout = () => {
                         </>
                     }
                 </div>
-                <MessageInput to="1withspaghetti" />
+                <MessageInput to="1withspaghetti" onSend={()=>true} />
             </div>
         </>
   )

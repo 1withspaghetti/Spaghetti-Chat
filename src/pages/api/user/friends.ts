@@ -57,7 +57,7 @@ async function POST(req: NextApiRequest, res: NextApiResponseWithSocket) {
         
         // Create a DM channel if it doesn't exist
         if (await Channel.count({dm: true, $or:[{members: [id, to]}, {members: [to, id]}]}) == 0) {
-            var dm = new Channel({_id: generateRandomId(), dm: true, members: [id, to]});
+            var dm = new Channel({_id: generateRandomId('channel'), dm: true, members: [id, to]});
             await dm.save();
             await Promise.all([
                 getChannels({_id: dm._id}, id).then(d=>res.socket.server.io.to(`u${id}`).emit("channelUpdate", {action: "add", data: d[0].toJSON()})),

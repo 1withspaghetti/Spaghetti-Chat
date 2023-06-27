@@ -22,9 +22,9 @@ const Friends: NextPageWithLayout = () => {
 
     const [friendsLoaded, setFriendsLoaded] = useState<boolean>(false);
 
-    const [incoming, dispatchIncoming] = useReducer(globalArrayReducer, []);
-    const [outgoing, dispatchOutgoing] = useReducer(globalArrayReducer, []);
-    const [friends, dispatchFriends] = useReducer(globalArrayReducer, []);
+    const [incoming, dispatchIncoming] = useReducer(globalArrayReducer((a, b) => a.username.localeCompare(b.username)), []);
+    const [outgoing, dispatchOutgoing] = useReducer(globalArrayReducer((a, b) => a.username.localeCompare(b.username)), []);
+    const [friends, dispatchFriends] = useReducer(globalArrayReducer((a, b) => a.username.localeCompare(b.username)), []);
     useEffect(()=>{
         if (authContext.awaitAuth || !authContext.loggedIn || friendsLoaded) return;
 
@@ -142,7 +142,7 @@ const Friends: NextPageWithLayout = () => {
                                 :
                                 (incoming.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Incoming Friend Requests</div> 
-                                : incoming.sort((a, b) => a.username.localeCompare(b.username)).map((x, i) => 
+                                : incoming.map((x, i) => 
                                     <User {...x} key={i}>
                                         <button className="text-2xl px-1 text-green-500 opacity-50 hover:opacity-75 transition-opacity" title="Accept Friend Request" onClick={()=>{acceptFriend(x)}}>✔</button>
                                         <button className="text-4xl px-1 text-red-500 opacity-50 hover:opacity-75 transition-opacity" title="Deny Friend Request" onClick={()=>{removeFriend(x)}}>⨯</button>
@@ -159,7 +159,7 @@ const Friends: NextPageWithLayout = () => {
                                 :
                                 (outgoing.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Outgoing Friend Requests</div> 
-                                : outgoing.sort((a, b) => a.username.localeCompare(b.username)).map((x, i) => 
+                                : outgoing.map((x, i) => 
                                     <User {...x} key={i}>
                                         <button className="text-4xl px-2 text-red-500 opacity-50 hover:opacity-75 transition-opacity" title="Cancel Pending Request" onClick={()=>{removeFriend(x)}}>⨯</button>
                                     </User>
@@ -181,7 +181,7 @@ const Friends: NextPageWithLayout = () => {
                                 :
                                 (friends.length == 0 ? 
                                     <div className="italic font-bold text-center opacity-50">No Friends :(</div> 
-                                : friends.sort((a, b) => a.username.localeCompare(b.username)).map((x, i) => 
+                                : friends.map((x, i) => 
                                     <User {...x} key={i}>
                                         <button className="text-4xl px-2 text-red-500 opacity-50 hover:opacity-75 transition-opacity" title="Remove Friend" onClick={()=>{setPendingRemoval(x)}}>⨯</button>
                                     </User>

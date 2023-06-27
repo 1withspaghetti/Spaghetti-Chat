@@ -54,6 +54,9 @@ input:-webkit-autofill:focus {
 .pfp {
     @apply w-12 h-12 flex-shrink-0 rounded-full bg-black bg-opacity-25 select-none object-cover;
 }
+.pfp.mobile-small {
+    @apply w-8 h-8 mt-1 sm:w-12 sm:h-12 sm:mt-0;
+}
 .pfp.large {
     @apply w-24 h-24;
 }

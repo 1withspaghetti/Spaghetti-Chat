@@ -125,11 +125,11 @@ const Home: NextPageWithLayout = () => {
                 <div className="absolute flex z-10 top-2 left-2 right-2 ml-2 mr-4 px-4 py-2 gradient bg-opacity-100 rounded-lg shadow-lg">
                     <div className="text-lg font-bold">Settings</div>
                 </div>
-                <div className="flex flex-col items-center gap-2 w-full h-full px-4 pt-16 pb-4 overflow-y-auto">
+                <div className="flex flex-col items-center gap-2 w-full h-full px-4 pt-16 pb-16 overflow-y-auto">
                     <div className="mx-auto w-full max-w-lg p-2 sm:p-4 gradient bg-opacity-90 rounded-lg shadow-lg">
                         <div className="flex gap-3 sm:gap-6">
                             <div className="w-16 sm:w-24 h-16 sm:h-24 flex-shrink-0 relative rounded-full bg-black bg-opacity-25 select-none overflow-hidden group">
-                                <img src={`/api/avatar/${avatar}`} className="flex-shrink-0 rounded-full bg-black bg-opacity-25 select-none"></img>
+                                <img src={`/api/avatar/${avatar}`} alt="Your Profile Picture" className="flex-shrink-0 rounded-full bg-black bg-opacity-25 select-none"></img>
                                 <label tabIndex={0} htmlFor="avatar" className="absolute top-0 right-0 left-0 bottom-0 flex justify-center items-center bg-black bg-opacity-80 opacity-0 group-hover:opacity-75 focus:opacity-100 transition-opacity cursor-pointer">
                                     <svg fill="currentColor" xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 -960 960 960"><path d="M769-648v-94h-94v-72.5h94V-908h72v93.5h95v72.5h-95v94h-72ZM109-55q-39.05 0-66.525-27.475Q15-109.95 15-149v-495q0-38.463 27.475-66.731Q69.95-739 109-739h132l84-98h257v95H368l-84 98H109v495h661v-393h95v393q0 39.05-28.269 66.525Q808.463-55 770-55H109Zm330.5-171q72.5 0 121.5-49t49-121.5q0-72.5-49-121T439.5-566q-72.5 0-121 48.5t-48.5 121q0 72.5 48.5 121.5t121 49Zm0-60q-47.5 0-78.5-31.5t-31-79q0-47.5 31-78.5t78.5-31q47.5 0 79 31t31.5 78.5q0 47.5-31.5 79t-79 31.5Zm.5-110Z"/></svg>
                                 </label>
@@ -195,7 +195,7 @@ const Home: NextPageWithLayout = () => {
                 </div>
             </div>
             <div className={`absolute left-0 bottom-0 right-0 px-4 py-2 text-center bg-red-600 shadow-lg rounded-t-lg text-white ${hasChanges ? 'translate-y-0' : 'translate-y-full'} transition-transform`}>
-                <b>Careful!</b> You have unsaved changes! <a href="#" onClick={saveSettings} className="underline">Save</a> - <a href="#" onClick={resetSettings} className="underline">Reset</a>
+                <b>Careful!</b> You have unsaved changes! <a href="#" onClick={resetSettings} className="underline">Reset</a> - <a href="#" onClick={saveSettings} className="underline">Save</a>
             </div>
             { popup && 
                 <div className='fixed z-50 top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-50' onClick={()=>setPopup(undefined)}>

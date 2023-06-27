@@ -19,6 +19,13 @@ export function transformId(data: any) {
     return data;
 }
 
-export function generateRandomId() {
-    return crypto.randomInt(281474976710655);;
+const previousId = new Map<string, number>();
+
+export function generateRandomId(unique: string) {
+    let id;
+    if (previousId.get(unique) || 0 >= Date.now()) id = (previousId.get(unique) || 0) + 1;
+    else id = Date.now();
+
+    previousId.set(unique, id);
+    return id;
 }
