@@ -23,7 +23,7 @@ const validator = object({
   username: SignUpValidator.user,
   color: number().min(0, 'Invalid Color').max(16777215, 'Invalid Color').test('test-color', 'Invalid Color', (e)=>{
     if (!e) return true;
-    let hex = '#'+e.toString(16);
+    let hex = '#'+e.toString(16).padStart(6,'0');
     for (let row of userColors) if (row.includes(hex)) return true;
     return false;
   }),

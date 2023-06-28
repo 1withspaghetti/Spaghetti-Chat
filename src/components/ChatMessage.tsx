@@ -8,7 +8,7 @@ export default function ChatMessage(props: {data: any}) {
     useEffect(()=>{
         const interval = setInterval(()=>{
             setTime(Date.now());
-        }, 30000);
+        }, 5000);
         return ()=>{
             clearInterval(interval);
         }
@@ -20,9 +20,9 @@ export default function ChatMessage(props: {data: any}) {
             <div className="w-full">
                 <div className="">
                     <span className="font-semibold mr-1" style={{color: props.data.author.color ? '#'+props.data.author.color.toString(16).padStart(6,'0') : 'currentcolor'}}>{props.data.author.username}</span>
-                    <span className="inline sm:inline text-[11px] opacity-30">{getTimeAgo(new Date(props.data.created))}</span>
+                    <span className="inline sm:inline text-[11px] text-black dark:text-white text-opacity-30 dark:text-opacity-30">{getTimeAgo(new Date(props.data.created))}</span>
                 </div>
-                <div className="">{props.data.content}</div>
+                <div className={props.data.unconfirmed ? 'opacity-50' : ''}>{props.data.content}</div>
             </div>
         </div>
     )

@@ -1,13 +1,14 @@
-type Data = Record<string, string> & {id: number};
+type Data = Record<string, any> & {id: number};
 
 export function globalArrayReducer(sort: (a: Data, b: Data) => number) {
     return (array: {id: number}[], payload: {action: 'set'|'add'|'edit'|'delete'|'editMember'|'editAuthor', data: Data|Data[]}) => {
         switch (payload.action) {
             case 'add':
                 if (payload.data instanceof Array) {
-                    return [...array, ...payload.data].sort(sort as any);
+                    let toDelete = payload.data.map(item => item.id);
+                    return [...array.filter(e=>!toDelete.includes(e.id)), ...payload.data].sort(sort as any);
                 } else
-                    return [...array, payload.data].sort(sort as any);
+                    return [...array.filter(e=>e.id!=(payload.data as Data).id), payload.data].sort(sort as any);
             case 'edit':
                 if (payload.data instanceof Array) {
                     let toEdit = payload.data.map(item => item.id);

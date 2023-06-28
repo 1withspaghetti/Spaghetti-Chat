@@ -1,6 +1,6 @@
 import { AuthContext } from "@/context/AuthContext";
 import { useRouter } from "next/router";
-import { UIEvent as ReactUIEvent, useContext, useEffect, useReducer, useRef, useState } from "react";
+import { UIEvent as ReactUIEvent, use, useContext, useEffect, useReducer, useRef, useState } from "react";
 import MessageInput from "@/components/MessageInput";
 import SkeletonText from "@/components/loader/SkeletonText";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,10 +11,13 @@ import { globalArrayReducer } from "@/utils/reducer";
 import { SocketContext } from "@/context/SocketContext";
 import { getTimeAgo } from "@/utils/time";
 import ChatMessage from "@/components/ChatMessage";
+import { UserContext } from "@/context/UserContext";
+import user from "../api/user";
 
 const Channel: NextPageWithLayout = () => {
 
     var authContext = useContext(AuthContext);
+    var userContext = useContext(UserContext);
     var socket = useContext(SocketContext);
     const notify = useContext(NotificationContext);
     const router = useRouter();
@@ -58,9 +61,19 @@ const Channel: NextPageWithLayout = () => {
 
     function sendMessage(content: string) {
         if (!content) return true;
+        var temp = {
+            id: Date.now(),
+            author: userContext,
+            content,
+            created: new Date().toISOString(),
+            unconfirmed: true
+        }
+        dispatchMessage({action: 'add', data: temp});
         axios.post('/api/channel/'+router.query.channelId+'/messages?count=25', {content}, {headers: {Authorization: authContext.resourceToken}}).then(res=>{
             dispatchMessage({action: 'add', data: res.data.message});
-        }).catch(notify);
+        }).catch(notify).finally(()=>{
+            dispatchMessage({action: 'delete', data: temp});
+        });
 
         return true;
     }
@@ -69,9 +82,9 @@ const Channel: NextPageWithLayout = () => {
 
     function onScroll(event: ReactUIEvent<HTMLDivElement, UIEvent>) {
         if (messages.length < 25) reachedEnd.current = true;
-        if (reachedEnd.current) return console.log('reached end');
+        if (reachedEnd.current) return;
 
-        if (event.currentTarget.scrollHeight - event.currentTarget.offsetHeight - event.currentTarget.scrollTop < 100) {
+        if (event.currentTarget.scrollHeight - event.currentTarget.offsetHeight + event.currentTarget.scrollTop < 50) {
             axios.get('/api/channel/'+router.query.channelId+'/messages?before='+messages[messages.length-1].id+'&count=25', {headers: {Authorization: authContext.resourceToken}}).then(res=>{
                 if (res.data.messages.length < 25) reachedEnd.current = true;
                 dispatchMessage({action: 'add', data: res.data.messages});
@@ -101,7 +114,7 @@ const Channel: NextPageWithLayout = () => {
                 <div className="flex flex-col-reverse gap-1 sm:gap-2 h-full px-1 sm:px-4 pt-16 pb-4 overflow-y-auto" onScroll={onScroll}>
                     { !messagesLoaded ?
                         <>
-                            {[10, 17, 9, 12, 8, 15, 11, 13, 14, 17,  10, 17, 9, 12, 8, 15, 11, 13, 14, 17].map((x, i) =>
+                            {[10, 17, 9, 12, 8, 15, 11, 13, 14, 17,  10, 17, 9, 12, 8, 15, 11].map((x, i) =>
                                 <div className="flex mx-2 py-1" key={i}>
                                     <div className="skeleton-pfp mr-1"></div>
                                     <div className="w-full">

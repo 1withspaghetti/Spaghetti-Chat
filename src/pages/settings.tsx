@@ -168,11 +168,11 @@ const Home: NextPageWithLayout = () => {
                             </textarea>
                         </div>
                     </div>
-                    <div className="sm:grid grid-cols-[auto,auto] mt-4 gap-x-4 gap-y-2 text-lg">
-                        <div className="font-bold">Account Created:</div>
-                        <div className="">{new Date(originalSettings.created).toLocaleString()}</div>
-                        <div className="font-bold">Email:</div>
-                        <div className="">
+                    <div className="sm:grid grid-cols-[auto,auto] mt-4 text-sm sm:text-base md:text-lg">
+                        <div className="font-bold mr-4 text-end">Account Created:</div>
+                        <div className="mb-2">{new Date(originalSettings.created).toLocaleString(undefined, {year: 'numeric', day: 'numeric', month: 'short', hour: 'numeric', minute: 'numeric'})}</div>
+                        <div className="font-bold mr-4 text-end">Email:</div>
+                        <div className="mb-2">
                             { !emailShown ? 
                                 <>
                                     <span>********</span>
@@ -184,9 +184,9 @@ const Home: NextPageWithLayout = () => {
                             {emailShown ? <button className="ml-2 text-xs opacity-50" onClick={()=>setEmailShown(false)}>Hide</button> : <button className="ml-2 text-xs opacity-50" onClick={()=>setEmailShown(true)}>Reveal</button>}
                         </div>
                     </div>
-                    <div className="mt-0 flex gap-6">
-                        <button onClick={()=>notify('Error', 'Not supported yet :(', true)} className="text-base text-blue-500 underline">Change Email</button>
-                        <button onClick={()=>notify('Error', 'Not supported yet :(', true)} className="text-base text-blue-500 underline">Change Password</button>
+                    <div className="mt-0 flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <button onClick={()=>notify('Error', 'Not supported yet :(', true)} className="text-blue-500 underline">Change Email</button>
+                        <button onClick={()=>notify('Error', 'Not supported yet :(', true)} className="text-blue-500 underline">Change Password</button>
                     </div>
                     <div className="mt-6 flex gap-2">
                         <button onClick={resetSettings} onTouchStart={resetSettings} className="w-min rounded-lg shadow font-semibold mx-1 px-2 py-1 transition-all text-navy-50 bg-slate-400 dark:bg-slate-500 hover:shadow-lg hover:scale-105">Reset</button>

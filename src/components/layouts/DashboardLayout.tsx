@@ -84,7 +84,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
         <SocketContext.Provider value={socket}>
         <div className="fixed top-0 right-0 left-0 bottom-0 gradient bg-opacity-50 flex">
             <div className={`flex flex-col flex-shrink-0 items-stretch w-full gradient bg-opacity-80 rounded-r-lg sm:rounded-r-2xl shadow-xl ${open ? 'max-w-screen-sm sm:max-w-[20rem]' : 'max-w-[64px]'} transition-all`}
-                onClick={()=>{if(!open) setOpen(true)}}>
+                onClick={()=>{if(!open) setOpen(true); else if (document.documentElement.clientWidth < 640) setOpen(false)}}>
                 <div className={`h-16 flex items-center ${open ? 'px-4' : 'px-2'} py-2 bg-black bg-opacity-5 dark:bg-opacity-25 shadow-lg transition-all`}>
                     <div className="w-12 h-12 flex-shrink-0 mr-4 rounded-full overflow-hidden shadow-lg">
                         { user ?
@@ -113,7 +113,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                 <div className={`flex-shrink-0 relative w-full h-full ${open ? 'pr-6 slim-scrollbar' : 'thin-scrollbar'}`}>
                     <div className="w-full h-[calc(100vh-64px)] overflow-y-auto">
                         <div>
-                            <div className={`flex justify-center ${open ? '' : ''}`}>
+                            <div className={`flex justify-center ${open ? '' : ''}`} onClick={(e)=>{if (!open) e.stopPropagation()}}>
                                 <Link href="/friends" className={`text-sm font-semibold text-center bg-black bg-opacity-0 dark:bg-opacity-10 shadow ${open ? 'w-fit rounded px-4 py-1 my-2' : 'w-full py-3'} hover:bg-opacity-10 hover:dark:bg-opacity-20 transition-all`}>Friends</Link>
                             </div>
                             { !channelsLoaded ?
@@ -128,7 +128,7 @@ export default function DashboardLayout(props: {children: React.ReactNode}) {
                             :
                                 <>
                                     {(channels).map((x, i) =>
-                                        <Link href={`/channel/${x.id}`} passHref className={`flex items-center gap-2 py-1 bg-black bg-opacity-0 hover:bg-opacity-10 ${open ? `px-4` : `px-2`} transition-all`} key={x.id}>
+                                        <Link href={`/channel/${x.id}`} passHref className={`flex items-center gap-2 py-1 bg-black ${open ? `px-4` : `px-2`} transition-all ${router.query.channelId == x.id ? 'bg-opacity-10 hover:bg-opacity-20' : 'bg-opacity-0 hover:bg-opacity-10'}`} key={x.id} onClick={(e)=>{if (!open) e.stopPropagation()}}>
                                             <img src={`/api/avatar/${x.avatar || (x.dm ? x.members[0].avatar : (x.members as any[]).find(u=>u.id==x.owner).avatar)}?size=48`} alt="Profile Picture" width={48} height={48} className="pfp"></img>
                                             <div className={`text-lg font-bold overflow-hidden whitespace-nowrap text-ellipsis ${open ? 'opacity-100' : 'opacity-0'} transition-opacity`}>{x.name || (x.members as any[]).map(x=>x.username).sort().join(', ')}</div>
                                         </Link>
